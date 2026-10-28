@@ -12,7 +12,10 @@ import {
   Code,
   GraduationCap,
   Monitor,
-  Eye
+  Eye,
+  Save,
+  Send,
+  Loader2
 } from 'lucide-react';
 import type { WorkbenchMode, WorkbenchFaultPayload, WireColor } from '@webboard/contracts';
 import { WireColorPalette } from './WireColorPalette.js';
@@ -29,12 +32,16 @@ interface ToolbarProps {
   isCodePanelOpen: boolean;
   currentView: ActiveAppView;
   isMirrorMode?: boolean;
+  isSaving?: boolean;
+  isSubmitting?: boolean;
   onSelectWireColor: (color: WireColor) => void;
   onToggleCodePanel: () => void;
   onToggleView: () => void;
   onExitMirrorMode?: () => void;
   onStartSimulation: () => void;
   onStopSimulation: () => void;
+  onSaveWorkspace: () => void;
+  onSubmitChallenge: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetZoom: () => void;
@@ -52,12 +59,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isCodePanelOpen,
   currentView,
   isMirrorMode = false,
+  isSaving = false,
+  isSubmitting = false,
   onSelectWireColor,
   onToggleCodePanel,
   onToggleView,
   onExitMirrorMode,
   onStartSimulation,
   onStopSimulation,
+  onSaveWorkspace,
+  onSubmitChallenge,
   onZoomIn,
   onZoomOut,
   onResetZoom,
@@ -163,6 +174,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                 <span>DESLIGAR (PARAR)</span>
               </button>
             )}
+
+            <div className="h-5 w-px bg-[#2e2e34] my-auto mx-1" />
+
+            {/* Salvar na Nuvem */}
+            <button
+              onClick={onSaveWorkspace}
+              disabled={isMirrorMode || isSaving}
+              title="Salvar bancada na nuvem (Fastify API)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-zinc-300 hover:text-white hover:bg-[#25252b] transition-colors cursor-pointer text-xs font-semibold disabled:opacity-40"
+            >
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <span>Salvar</span>
+            </button>
+
+            {/* Submeter Desafio */}
+            <button
+              onClick={onSubmitChallenge}
+              disabled={isMirrorMode || isSubmitting}
+              title="Submeter snapshot para auto-avaliação"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white transition-colors cursor-pointer text-xs font-bold disabled:opacity-40"
+            >
+              {isSubmitting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Send className="w-3.5 h-3.5" />
+              )}
+              <span>Submeter</span>
+            </button>
 
             <div className="h-5 w-px bg-[#2e2e34] my-auto mx-1" />
 
