@@ -8,8 +8,7 @@ test('NetlistSolver agrupa pinos interligados em nos equipotenciais (NetNodes)',
     schemaVersion: '1.0.0',
     circuitId: 'ckt_test_nets',
     components: [
-      {
-        id: 'mcu_01',
+      {        id: 'mcu_01',
         type: 'MICROCONTROLLER_ARDUINO_UNO',
         isLocked: true,
         position: { x: 0, y: 0 },
@@ -203,4 +202,219 @@ test('Curto indireto atraves de múltiplos condutores identifica o caminho de fa
     result.fault.failedWireId === 'wire_5v_to_term' ||
       result.fault.failedWireId === 'wire_term_to_gnd'
   );
+});
+
+test('Protoboard Virtual: Pontes internas conectam pinos na mesma trilha vertical (A-E)', () => {
+  const circuitBreadboard: CircuitDefinition = {
+    schemaVersion: '1.0.0',
+    circuitId: 'ckt_bb_trilha',
+    components: [
+      {
+        id: 'mcu_01',
+        type: 'MICROCONTROLLER_ARDUINO_UNO',
+        isLocked: true,
+        position: { x: 0, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'bb_01',
+        type: 'BOARD_BREADBOARD_HALF',
+        isLocked: false,
+        position: { x: 200, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'res_01',
+        type: 'PASSIVE_RESISTOR',
+        isLocked: false,
+        position: { x: 300, y: 0 },
+        parameters: { resistanceOhms: 330 },
+      },
+    ],
+    wires: [
+      // Uno D13 ligado no furo 12_A da protoboard
+      {
+        id: 'w_uno_to_bb_12a',
+        from: { componentId: 'mcu_01', pinId: 'D13' },
+        to: { componentId: 'bb_01', pinId: '12_A' },
+        color: 'GREEN',
+      },
+      // Resistor PIN_1 plugado no furo 12_D (mesma coluna 12, secao superior A-E)
+      {
+        id: 'w_res_to_bb_12d',
+        from: { componentId: 'res_01', pinId: 'PIN_1' },
+        to: { componentId: 'bb_01', pinId: '12_D' },
+        color: 'GREEN',
+      },
+    ],
+  };
+
+  const result = NetlistSolver.solve(circuitBreadboard);
+
+  assert.equal(result.hasFault, false);
+  const netD13 = result.getNetForPin('mcu_01', 'D13');
+  const netRes1 = result.getNetForPin('res_01', 'PIN_1');
+
+  assert.ok(netD13);
+  assert.ok(netRes1);
+  assert.equal(netD13.id, netRes1.id, 'D13 e Resistor PIN_1 devem estar no mesmo nó através da coluna 12 da protoboard');
+  assert.ok(netD13.pins.some((p) => p.componentId === 'bb_01' && p.pinId === '12_A'));
+  assert.ok(netD13.pins.some((p) => p.componentId === 'bb_01' && p.pinId === '12_D'));
+});
+
+test('Protoboard Virtual: Fenda central isola seções A-E e F-J (separação galvânica DIP)', () => {
+  const circuitIsolado: CircuitDefinition = {
+    schemaVersion: '1.0.0',
+    circuitId: 'ckt_bb_isolamento',
+    components: [
+      {
+        id: 'bb_01',
+        type: 'BOARD_BREADBOARD_HALF',
+        isLocked: false,
+        position: { x: 0, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'res_01',
+        type: 'PASSIVE_RESISTOR',
+        isLocked: false,
+        position: { x: 100, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'led_01',
+        type: 'ACTUATOR_LED',
+        isLocked: false,
+        position: { x: 200, y: 0 },
+        parameters: {},
+      },
+    ],
+    wires: [
+      {
+        id: 'w1',
+        from: { componentId: 'res_01', pinId: 'PIN_1' },
+        to: { componentId: 'bb_01', pinId: '10_E' }, // Seção superior
+        color: 'BLUE',
+      },
+      {
+        id: 'w2',
+        from: { componentId: 'led_01', pinId: 'ANODE' },
+        to: { componentId: 'bb_01', pinId: '10_F' }, // Seção inferior (separada pelo canal DIP)
+        color: 'YELLOW',
+      },
+    ],
+  };
+
+  const result = NetlistSolver.solve(circuitIsolado);
+
+  const netE = result.getNetForPin('bb_01', '10_E');
+  const netF = result.getNetForPin('bb_01', '10_F');
+
+  assert.ok(netE);
+  assert.ok(netF);
+  assert.notEqual(netE.id, netF.id, 'Furos 10_E e 10_F devem pertencer a nós distintos devido à fenda central');
+});
+
+test('Protoboard Virtual: Barramentos de energia horizontais interligam 30 furos contínuos', () => {
+  const circuitBarramento: CircuitDefinition = {
+    schemaVersion: '1.0.0',
+    circuitId: 'ckt_bb_rails',
+    components: [
+      {
+        id: 'mcu_01',
+        type: 'MICROCONTROLLER_ARDUINO_UNO',
+        isLocked: true,
+        position: { x: 0, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'bb_01',
+        type: 'BOARD_BREADBOARD_HALF',
+        isLocked: false,
+        position: { x: 100, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'led_01',
+        type: 'ACTUATOR_LED',
+        isLocked: false,
+        position: { x: 200, y: 0 },
+        parameters: {},
+      },
+    ],
+    wires: [
+      // Uno 5V no furo 1 do barramento superior positivo
+      {
+        id: 'w_5v_to_rail_1',
+        from: { componentId: 'mcu_01', pinId: '5V' },
+        to: { componentId: 'bb_01', pinId: 'TOP_PLUS_1' },
+        color: 'RED',
+      },
+      // LED Anode no furo 30 do mesmo barramento
+      {
+        id: 'w_led_to_rail_30',
+        from: { componentId: 'led_01', pinId: 'ANODE' },
+        to: { componentId: 'bb_01', pinId: 'TOP_PLUS_30' },
+        color: 'RED',
+      },
+    ],
+  };
+
+  const result = NetlistSolver.solve(circuitBarramento);
+
+  assert.equal(result.hasFault, false);
+  const net5V = result.getNetForPin('mcu_01', '5V');
+  const netLed = result.getNetForPin('led_01', 'ANODE');
+
+  assert.ok(net5V);
+  assert.ok(netLed);
+  assert.equal(net5V.id, netLed.id, 'Barramento superior positivo deve conduzir de TOP_PLUS_1 a TOP_PLUS_30');
+  assert.equal(net5V.isPower, true);
+  assert.equal(net5V.voltage, 5.0);
+});
+
+test('Protoboard Virtual: Curto-circuito através da mesma trilha dispara falha elétrica', () => {
+  const circuitCurtoBB: CircuitDefinition = {
+    schemaVersion: '1.0.0',
+    circuitId: 'ckt_bb_curto',
+    components: [
+      {
+        id: 'mcu_01',
+        type: 'MICROCONTROLLER_ARDUINO_UNO',
+        isLocked: true,
+        position: { x: 0, y: 0 },
+        parameters: {},
+      },
+      {
+        id: 'bb_01',
+        type: 'BOARD_BREADBOARD_HALF',
+        isLocked: false,
+        position: { x: 100, y: 0 },
+        parameters: {},
+      },
+    ],
+    wires: [
+      // 5V ligado no furo 15_A
+      {
+        id: 'w_5v_to_15a',
+        from: { componentId: 'mcu_01', pinId: '5V' },
+        to: { componentId: 'bb_01', pinId: '15_A' },
+        color: 'RED',
+      },
+      // GND ligado no furo 15_D (mesma trilha vertical!)
+      {
+        id: 'w_gnd_to_15d',
+        from: { componentId: 'mcu_01', pinId: 'GND_1' },
+        to: { componentId: 'bb_01', pinId: '15_D' },
+        color: 'BLACK',
+      },
+    ],
+  };
+
+  const result = NetlistSolver.solve(circuitCurtoBB);
+
+  assert.equal(result.hasFault, true);
+  assert.ok(result.fault);
+  assert.equal(result.fault.type, 'SHORT_CIRCUIT');
+  assert.match(result.fault.message, /Curto-circuito detectado/);
 });

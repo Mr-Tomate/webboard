@@ -1,0 +1,3797 @@
+{
+  "id": "BOARD_BREADBOARD_HALF",
+  "name": "Protoboard Half-Size (400 furos)",
+  "category": "PASSIVE",
+  "dimensions": {
+    "width": 540,
+    "height": 280
+  },
+  "pins": [
+    {
+      "id": "TOP_PLUS_1",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_1",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_2",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_2",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_3",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_3",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_4",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_4",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_5",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_5",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_6",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_6",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_7",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_7",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_8",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_8",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_9",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_9",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_10",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_10",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_11",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_11",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_12",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_12",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_13",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_13",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_14",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_14",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_15",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_15",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_16",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_16",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_17",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_17",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_18",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_18",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_19",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_19",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_20",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_20",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_21",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_21",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_22",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_22",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_23",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_23",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_24",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_24",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_25",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_25",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_26",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_26",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_27",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_27",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_28",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_28",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_29",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_29",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 38
+      }
+    },
+    {
+      "id": "TOP_PLUS_30",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 20
+      }
+    },
+    {
+      "id": "TOP_MINUS_30",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 38
+      }
+    },
+    {
+      "id": "1_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 64
+      }
+    },
+    {
+      "id": "1_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 80
+      }
+    },
+    {
+      "id": "1_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 96
+      }
+    },
+    {
+      "id": "1_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 112
+      }
+    },
+    {
+      "id": "1_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 128
+      }
+    },
+    {
+      "id": "2_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 64
+      }
+    },
+    {
+      "id": "2_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 80
+      }
+    },
+    {
+      "id": "2_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 96
+      }
+    },
+    {
+      "id": "2_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 112
+      }
+    },
+    {
+      "id": "2_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 128
+      }
+    },
+    {
+      "id": "3_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 64
+      }
+    },
+    {
+      "id": "3_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 80
+      }
+    },
+    {
+      "id": "3_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 96
+      }
+    },
+    {
+      "id": "3_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 112
+      }
+    },
+    {
+      "id": "3_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 128
+      }
+    },
+    {
+      "id": "4_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 64
+      }
+    },
+    {
+      "id": "4_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 80
+      }
+    },
+    {
+      "id": "4_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 96
+      }
+    },
+    {
+      "id": "4_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 112
+      }
+    },
+    {
+      "id": "4_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 128
+      }
+    },
+    {
+      "id": "5_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 64
+      }
+    },
+    {
+      "id": "5_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 80
+      }
+    },
+    {
+      "id": "5_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 96
+      }
+    },
+    {
+      "id": "5_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 112
+      }
+    },
+    {
+      "id": "5_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 128
+      }
+    },
+    {
+      "id": "6_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 64
+      }
+    },
+    {
+      "id": "6_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 80
+      }
+    },
+    {
+      "id": "6_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 96
+      }
+    },
+    {
+      "id": "6_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 112
+      }
+    },
+    {
+      "id": "6_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 128
+      }
+    },
+    {
+      "id": "7_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 64
+      }
+    },
+    {
+      "id": "7_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 80
+      }
+    },
+    {
+      "id": "7_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 96
+      }
+    },
+    {
+      "id": "7_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 112
+      }
+    },
+    {
+      "id": "7_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 128
+      }
+    },
+    {
+      "id": "8_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 64
+      }
+    },
+    {
+      "id": "8_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 80
+      }
+    },
+    {
+      "id": "8_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 96
+      }
+    },
+    {
+      "id": "8_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 112
+      }
+    },
+    {
+      "id": "8_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 128
+      }
+    },
+    {
+      "id": "9_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 64
+      }
+    },
+    {
+      "id": "9_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 80
+      }
+    },
+    {
+      "id": "9_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 96
+      }
+    },
+    {
+      "id": "9_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 112
+      }
+    },
+    {
+      "id": "9_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 128
+      }
+    },
+    {
+      "id": "10_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 64
+      }
+    },
+    {
+      "id": "10_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 80
+      }
+    },
+    {
+      "id": "10_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 96
+      }
+    },
+    {
+      "id": "10_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 112
+      }
+    },
+    {
+      "id": "10_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 128
+      }
+    },
+    {
+      "id": "11_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 64
+      }
+    },
+    {
+      "id": "11_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 80
+      }
+    },
+    {
+      "id": "11_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 96
+      }
+    },
+    {
+      "id": "11_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 112
+      }
+    },
+    {
+      "id": "11_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 128
+      }
+    },
+    {
+      "id": "12_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 64
+      }
+    },
+    {
+      "id": "12_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 80
+      }
+    },
+    {
+      "id": "12_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 96
+      }
+    },
+    {
+      "id": "12_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 112
+      }
+    },
+    {
+      "id": "12_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 128
+      }
+    },
+    {
+      "id": "13_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 64
+      }
+    },
+    {
+      "id": "13_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 80
+      }
+    },
+    {
+      "id": "13_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 96
+      }
+    },
+    {
+      "id": "13_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 112
+      }
+    },
+    {
+      "id": "13_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 128
+      }
+    },
+    {
+      "id": "14_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 64
+      }
+    },
+    {
+      "id": "14_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 80
+      }
+    },
+    {
+      "id": "14_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 96
+      }
+    },
+    {
+      "id": "14_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 112
+      }
+    },
+    {
+      "id": "14_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 128
+      }
+    },
+    {
+      "id": "15_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 64
+      }
+    },
+    {
+      "id": "15_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 80
+      }
+    },
+    {
+      "id": "15_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 96
+      }
+    },
+    {
+      "id": "15_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 112
+      }
+    },
+    {
+      "id": "15_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 128
+      }
+    },
+    {
+      "id": "16_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 64
+      }
+    },
+    {
+      "id": "16_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 80
+      }
+    },
+    {
+      "id": "16_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 96
+      }
+    },
+    {
+      "id": "16_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 112
+      }
+    },
+    {
+      "id": "16_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 128
+      }
+    },
+    {
+      "id": "17_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 64
+      }
+    },
+    {
+      "id": "17_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 80
+      }
+    },
+    {
+      "id": "17_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 96
+      }
+    },
+    {
+      "id": "17_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 112
+      }
+    },
+    {
+      "id": "17_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 128
+      }
+    },
+    {
+      "id": "18_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 64
+      }
+    },
+    {
+      "id": "18_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 80
+      }
+    },
+    {
+      "id": "18_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 96
+      }
+    },
+    {
+      "id": "18_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 112
+      }
+    },
+    {
+      "id": "18_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 128
+      }
+    },
+    {
+      "id": "19_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 64
+      }
+    },
+    {
+      "id": "19_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 80
+      }
+    },
+    {
+      "id": "19_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 96
+      }
+    },
+    {
+      "id": "19_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 112
+      }
+    },
+    {
+      "id": "19_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 128
+      }
+    },
+    {
+      "id": "20_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 64
+      }
+    },
+    {
+      "id": "20_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 80
+      }
+    },
+    {
+      "id": "20_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 96
+      }
+    },
+    {
+      "id": "20_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 112
+      }
+    },
+    {
+      "id": "20_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 128
+      }
+    },
+    {
+      "id": "21_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 64
+      }
+    },
+    {
+      "id": "21_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 80
+      }
+    },
+    {
+      "id": "21_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 96
+      }
+    },
+    {
+      "id": "21_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 112
+      }
+    },
+    {
+      "id": "21_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 128
+      }
+    },
+    {
+      "id": "22_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 64
+      }
+    },
+    {
+      "id": "22_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 80
+      }
+    },
+    {
+      "id": "22_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 96
+      }
+    },
+    {
+      "id": "22_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 112
+      }
+    },
+    {
+      "id": "22_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 128
+      }
+    },
+    {
+      "id": "23_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 64
+      }
+    },
+    {
+      "id": "23_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 80
+      }
+    },
+    {
+      "id": "23_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 96
+      }
+    },
+    {
+      "id": "23_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 112
+      }
+    },
+    {
+      "id": "23_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 128
+      }
+    },
+    {
+      "id": "24_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 64
+      }
+    },
+    {
+      "id": "24_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 80
+      }
+    },
+    {
+      "id": "24_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 96
+      }
+    },
+    {
+      "id": "24_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 112
+      }
+    },
+    {
+      "id": "24_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 128
+      }
+    },
+    {
+      "id": "25_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 64
+      }
+    },
+    {
+      "id": "25_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 80
+      }
+    },
+    {
+      "id": "25_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 96
+      }
+    },
+    {
+      "id": "25_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 112
+      }
+    },
+    {
+      "id": "25_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 128
+      }
+    },
+    {
+      "id": "26_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 64
+      }
+    },
+    {
+      "id": "26_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 80
+      }
+    },
+    {
+      "id": "26_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 96
+      }
+    },
+    {
+      "id": "26_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 112
+      }
+    },
+    {
+      "id": "26_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 128
+      }
+    },
+    {
+      "id": "27_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 64
+      }
+    },
+    {
+      "id": "27_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 80
+      }
+    },
+    {
+      "id": "27_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 96
+      }
+    },
+    {
+      "id": "27_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 112
+      }
+    },
+    {
+      "id": "27_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 128
+      }
+    },
+    {
+      "id": "28_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 64
+      }
+    },
+    {
+      "id": "28_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 80
+      }
+    },
+    {
+      "id": "28_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 96
+      }
+    },
+    {
+      "id": "28_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 112
+      }
+    },
+    {
+      "id": "28_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 128
+      }
+    },
+    {
+      "id": "29_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 64
+      }
+    },
+    {
+      "id": "29_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 80
+      }
+    },
+    {
+      "id": "29_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 96
+      }
+    },
+    {
+      "id": "29_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 112
+      }
+    },
+    {
+      "id": "29_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 128
+      }
+    },
+    {
+      "id": "30_A",
+      "label": "A",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 64
+      }
+    },
+    {
+      "id": "30_B",
+      "label": "B",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 80
+      }
+    },
+    {
+      "id": "30_C",
+      "label": "C",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 96
+      }
+    },
+    {
+      "id": "30_D",
+      "label": "D",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 112
+      }
+    },
+    {
+      "id": "30_E",
+      "label": "E",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 128
+      }
+    },
+    {
+      "id": "1_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 152
+      }
+    },
+    {
+      "id": "1_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 168
+      }
+    },
+    {
+      "id": "1_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 184
+      }
+    },
+    {
+      "id": "1_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 200
+      }
+    },
+    {
+      "id": "1_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 216
+      }
+    },
+    {
+      "id": "2_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 152
+      }
+    },
+    {
+      "id": "2_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 168
+      }
+    },
+    {
+      "id": "2_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 184
+      }
+    },
+    {
+      "id": "2_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 200
+      }
+    },
+    {
+      "id": "2_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 216
+      }
+    },
+    {
+      "id": "3_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 152
+      }
+    },
+    {
+      "id": "3_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 168
+      }
+    },
+    {
+      "id": "3_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 184
+      }
+    },
+    {
+      "id": "3_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 200
+      }
+    },
+    {
+      "id": "3_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 216
+      }
+    },
+    {
+      "id": "4_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 152
+      }
+    },
+    {
+      "id": "4_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 168
+      }
+    },
+    {
+      "id": "4_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 184
+      }
+    },
+    {
+      "id": "4_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 200
+      }
+    },
+    {
+      "id": "4_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 216
+      }
+    },
+    {
+      "id": "5_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 152
+      }
+    },
+    {
+      "id": "5_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 168
+      }
+    },
+    {
+      "id": "5_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 184
+      }
+    },
+    {
+      "id": "5_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 200
+      }
+    },
+    {
+      "id": "5_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 216
+      }
+    },
+    {
+      "id": "6_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 152
+      }
+    },
+    {
+      "id": "6_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 168
+      }
+    },
+    {
+      "id": "6_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 184
+      }
+    },
+    {
+      "id": "6_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 200
+      }
+    },
+    {
+      "id": "6_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 216
+      }
+    },
+    {
+      "id": "7_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 152
+      }
+    },
+    {
+      "id": "7_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 168
+      }
+    },
+    {
+      "id": "7_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 184
+      }
+    },
+    {
+      "id": "7_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 200
+      }
+    },
+    {
+      "id": "7_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 216
+      }
+    },
+    {
+      "id": "8_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 152
+      }
+    },
+    {
+      "id": "8_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 168
+      }
+    },
+    {
+      "id": "8_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 184
+      }
+    },
+    {
+      "id": "8_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 200
+      }
+    },
+    {
+      "id": "8_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 216
+      }
+    },
+    {
+      "id": "9_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 152
+      }
+    },
+    {
+      "id": "9_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 168
+      }
+    },
+    {
+      "id": "9_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 184
+      }
+    },
+    {
+      "id": "9_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 200
+      }
+    },
+    {
+      "id": "9_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 216
+      }
+    },
+    {
+      "id": "10_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 152
+      }
+    },
+    {
+      "id": "10_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 168
+      }
+    },
+    {
+      "id": "10_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 184
+      }
+    },
+    {
+      "id": "10_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 200
+      }
+    },
+    {
+      "id": "10_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 216
+      }
+    },
+    {
+      "id": "11_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 152
+      }
+    },
+    {
+      "id": "11_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 168
+      }
+    },
+    {
+      "id": "11_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 184
+      }
+    },
+    {
+      "id": "11_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 200
+      }
+    },
+    {
+      "id": "11_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 216
+      }
+    },
+    {
+      "id": "12_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 152
+      }
+    },
+    {
+      "id": "12_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 168
+      }
+    },
+    {
+      "id": "12_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 184
+      }
+    },
+    {
+      "id": "12_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 200
+      }
+    },
+    {
+      "id": "12_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 216
+      }
+    },
+    {
+      "id": "13_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 152
+      }
+    },
+    {
+      "id": "13_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 168
+      }
+    },
+    {
+      "id": "13_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 184
+      }
+    },
+    {
+      "id": "13_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 200
+      }
+    },
+    {
+      "id": "13_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 216
+      }
+    },
+    {
+      "id": "14_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 152
+      }
+    },
+    {
+      "id": "14_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 168
+      }
+    },
+    {
+      "id": "14_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 184
+      }
+    },
+    {
+      "id": "14_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 200
+      }
+    },
+    {
+      "id": "14_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 216
+      }
+    },
+    {
+      "id": "15_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 152
+      }
+    },
+    {
+      "id": "15_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 168
+      }
+    },
+    {
+      "id": "15_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 184
+      }
+    },
+    {
+      "id": "15_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 200
+      }
+    },
+    {
+      "id": "15_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 216
+      }
+    },
+    {
+      "id": "16_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 152
+      }
+    },
+    {
+      "id": "16_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 168
+      }
+    },
+    {
+      "id": "16_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 184
+      }
+    },
+    {
+      "id": "16_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 200
+      }
+    },
+    {
+      "id": "16_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 216
+      }
+    },
+    {
+      "id": "17_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 152
+      }
+    },
+    {
+      "id": "17_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 168
+      }
+    },
+    {
+      "id": "17_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 184
+      }
+    },
+    {
+      "id": "17_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 200
+      }
+    },
+    {
+      "id": "17_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 216
+      }
+    },
+    {
+      "id": "18_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 152
+      }
+    },
+    {
+      "id": "18_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 168
+      }
+    },
+    {
+      "id": "18_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 184
+      }
+    },
+    {
+      "id": "18_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 200
+      }
+    },
+    {
+      "id": "18_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 216
+      }
+    },
+    {
+      "id": "19_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 152
+      }
+    },
+    {
+      "id": "19_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 168
+      }
+    },
+    {
+      "id": "19_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 184
+      }
+    },
+    {
+      "id": "19_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 200
+      }
+    },
+    {
+      "id": "19_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 216
+      }
+    },
+    {
+      "id": "20_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 152
+      }
+    },
+    {
+      "id": "20_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 168
+      }
+    },
+    {
+      "id": "20_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 184
+      }
+    },
+    {
+      "id": "20_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 200
+      }
+    },
+    {
+      "id": "20_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 216
+      }
+    },
+    {
+      "id": "21_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 152
+      }
+    },
+    {
+      "id": "21_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 168
+      }
+    },
+    {
+      "id": "21_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 184
+      }
+    },
+    {
+      "id": "21_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 200
+      }
+    },
+    {
+      "id": "21_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 216
+      }
+    },
+    {
+      "id": "22_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 152
+      }
+    },
+    {
+      "id": "22_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 168
+      }
+    },
+    {
+      "id": "22_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 184
+      }
+    },
+    {
+      "id": "22_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 200
+      }
+    },
+    {
+      "id": "22_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 216
+      }
+    },
+    {
+      "id": "23_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 152
+      }
+    },
+    {
+      "id": "23_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 168
+      }
+    },
+    {
+      "id": "23_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 184
+      }
+    },
+    {
+      "id": "23_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 200
+      }
+    },
+    {
+      "id": "23_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 216
+      }
+    },
+    {
+      "id": "24_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 152
+      }
+    },
+    {
+      "id": "24_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 168
+      }
+    },
+    {
+      "id": "24_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 184
+      }
+    },
+    {
+      "id": "24_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 200
+      }
+    },
+    {
+      "id": "24_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 216
+      }
+    },
+    {
+      "id": "25_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 152
+      }
+    },
+    {
+      "id": "25_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 168
+      }
+    },
+    {
+      "id": "25_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 184
+      }
+    },
+    {
+      "id": "25_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 200
+      }
+    },
+    {
+      "id": "25_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 216
+      }
+    },
+    {
+      "id": "26_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 152
+      }
+    },
+    {
+      "id": "26_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 168
+      }
+    },
+    {
+      "id": "26_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 184
+      }
+    },
+    {
+      "id": "26_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 200
+      }
+    },
+    {
+      "id": "26_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 216
+      }
+    },
+    {
+      "id": "27_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 152
+      }
+    },
+    {
+      "id": "27_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 168
+      }
+    },
+    {
+      "id": "27_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 184
+      }
+    },
+    {
+      "id": "27_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 200
+      }
+    },
+    {
+      "id": "27_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 216
+      }
+    },
+    {
+      "id": "28_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 152
+      }
+    },
+    {
+      "id": "28_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 168
+      }
+    },
+    {
+      "id": "28_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 184
+      }
+    },
+    {
+      "id": "28_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 200
+      }
+    },
+    {
+      "id": "28_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 216
+      }
+    },
+    {
+      "id": "29_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 152
+      }
+    },
+    {
+      "id": "29_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 168
+      }
+    },
+    {
+      "id": "29_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 184
+      }
+    },
+    {
+      "id": "29_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 200
+      }
+    },
+    {
+      "id": "29_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 216
+      }
+    },
+    {
+      "id": "30_F",
+      "label": "F",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 152
+      }
+    },
+    {
+      "id": "30_G",
+      "label": "G",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 168
+      }
+    },
+    {
+      "id": "30_H",
+      "label": "H",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 184
+      }
+    },
+    {
+      "id": "30_I",
+      "label": "I",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 200
+      }
+    },
+    {
+      "id": "30_J",
+      "label": "J",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 216
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_1",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_1",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 35,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_2",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_2",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 51,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_3",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_3",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 67,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_4",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_4",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 83,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_5",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_5",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 99,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_6",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_6",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 115,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_7",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_7",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 131,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_8",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_8",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 147,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_9",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_9",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 163,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_10",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_10",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 179,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_11",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_11",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 195,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_12",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_12",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 211,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_13",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_13",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 227,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_14",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_14",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 243,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_15",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_15",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 259,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_16",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_16",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 275,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_17",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_17",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 291,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_18",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_18",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 307,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_19",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_19",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 323,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_20",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_20",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 339,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_21",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_21",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 355,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_22",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_22",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 371,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_23",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_23",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 387,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_24",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_24",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 403,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_25",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_25",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 419,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_26",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_26",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 435,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_27",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_27",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 451,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_28",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_28",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 467,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_29",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_29",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 483,
+        "y": 260
+      }
+    },
+    {
+      "id": "BOTTOM_PLUS_30",
+      "label": "+",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 242
+      }
+    },
+    {
+      "id": "BOTTOM_MINUS_30",
+      "label": "-",
+      "type": "PASSIVE",
+      "anchorPosition": {
+        "x": 499,
+        "y": 260
+      }
+    }
+  ],
+  "defaultParameters": {},
+  "visualStates": [
+    "default",
+    "active",
+    "failure"
+  ]
+}

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 280" width="540" height="280">
+  <rect x="2" y="2" width="536" height="276" rx="6" fill="#f4f4f5" stroke="#18181b" stroke-width="3"/>
+  <!-- Linhas Guia dos Barramentos -->
+  <line x1="25" y1="20" x2="515" y2="20" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.6"/>
+  <line x1="25" y1="38" x2="515" y2="38" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.6"/>
+  <!-- Canal Central DIP Divider -->
+  <rect x="15" y="136" width="510" height="8" fill="#e4e4e7" stroke="#71717a" stroke-width="1" rx="2"/>
+  <!-- Linhas Guia Inferiores -->
+  <line x1="25" y1="242" x2="515" y2="242" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.6"/>
+  <line x1="25" y1="260" x2="515" y2="260" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 2" opacity="0.6"/>
+</svg>

@@ -6,6 +6,7 @@ import pushbuttonManifest from './pushbutton/manifest.json' with { type: 'json' 
 import potentiometerManifest from './potentiometer/manifest.json' with { type: 'json' };
 import buzzerManifest from './actuator_buzzer/manifest.json' with { type: 'json' };
 import ultrasonicManifest from './sensor_ultrasonic/manifest.json' with { type: 'json' };
+import breadboardManifest from './board_breadboard/manifest.json' with { type: 'json' };
 
 import { ResistorLogic } from './resistor/logic.js';
 import { LedLogic } from './actuator_led/logic.js';
@@ -13,6 +14,7 @@ import { PushbuttonLogic } from './pushbutton/logic.js';
 import { PotentiometerLogic } from './potentiometer/logic.js';
 import { BuzzerLogic } from './actuator_buzzer/logic.js';
 import { UltrasonicSensorLogic } from './sensor_ultrasonic/logic.js';
+import { BreadboardLogic } from './board_breadboard/logic.js';
 
 export {
   ResistorLogic,
@@ -21,6 +23,7 @@ export {
   PotentiometerLogic,
   BuzzerLogic,
   UltrasonicSensorLogic,
+  BreadboardLogic,
 };
 
 export interface ComponentBundle {
@@ -77,6 +80,18 @@ export const COMPONENT_CATALOG: Record<string, ComponentBundle> = {
     manifest: ultrasonicManifest as ComponentManifest,
     createLogic: (params) => new UltrasonicSensorLogic(params),
   },
+  board_breadboard: {
+    manifest: breadboardManifest as ComponentManifest,
+    createLogic: (params) => new BreadboardLogic(params),
+  },
+  BOARD_BREADBOARD_HALF: {
+    manifest: breadboardManifest as ComponentManifest,
+    createLogic: (params) => new BreadboardLogic(params),
+  },
+  BOARD_BREADBOARD: {
+    manifest: breadboardManifest as ComponentManifest,
+    createLogic: (params) => new BreadboardLogic(params),
+  },
 };
 
 export function getComponentBundle(type: string): ComponentBundle | undefined {
@@ -91,5 +106,6 @@ export function getAllComponentManifests(): ComponentManifest[] {
     potentiometerManifest as ComponentManifest,
     buzzerManifest as ComponentManifest,
     ultrasonicManifest as ComponentManifest,
+    breadboardManifest as ComponentManifest,
   ];
 }

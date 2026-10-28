@@ -15,6 +15,7 @@ import {
   PotentiometerLogic,
   BuzzerLogic,
   UltrasonicSensorLogic,
+  BreadboardLogic,
 } from '../dist/index.js';
 
 class MockComponentContext implements ComponentContext {
@@ -64,9 +65,9 @@ class MockComponentContext implements ComponentContext {
   }
 }
 
-test('Manifestos: Todos os 6 componentes basicos sao validos e exportados', () => {
+test('Manifestos: Todos os 7 componentes basicos sao validos e exportados', () => {
   const manifests = getAllComponentManifests();
-  assert.equal(manifests.length, 6);
+  assert.equal(manifests.length, 7);
 
   const expectedIds = [
     'resistor',
@@ -75,6 +76,7 @@ test('Manifestos: Todos os 6 componentes basicos sao validos e exportados', () =
     'potentiometer',
     'actuator_buzzer',
     'sensor_ultrasonic',
+    'BOARD_BREADBOARD_HALF',
   ];
 
   for (const id of expectedIds) {
@@ -100,6 +102,20 @@ test('Manifestos: Todos os 6 componentes basicos sao validos e exportados', () =
       );
     }
   }
+
+  const bbBundle = getComponentBundle('BOARD_BREADBOARD_HALF');
+  assert.ok(bbBundle);
+  assert.equal(bbBundle.manifest.pins.length, 420);
+});
+
+test('Protoboard: Inicializacao passiva e conservacao de estado visual', () => {
+  const ctx = new MockComponentContext();
+  const bb = new BreadboardLogic();
+  bb.onInit(ctx);
+
+  assert.equal(ctx.lastVisualState.state, 'default');
+  bb.onPinChange('TOP_PLUS_1', ctx);
+  assert.equal(ctx.lastVisualState.state, 'default');
 });
 
 test('Resistor: Fisica de corrente e queda de tensao', () => {

@@ -6,6 +6,7 @@ import type {
   PinDigitalLevel,
   WorkbenchFaultPayload,
 } from '@webboard/contracts';
+import { generateBreadboardInternalBridges } from './breadboard.js';
 
 export interface NetPinRef {
   componentId: string;
@@ -115,7 +116,7 @@ export function defaultPinResolver(
     }
   }
 
-  // Pinos de componentes passivos ou atuadores são terminais receptores (PASSIVE)
+  // Pinos de componentes passivos, protoboards ou atuadores são terminais receptores (PASSIVE)
   return {
     componentId,
     pinId,
@@ -127,6 +128,7 @@ export class NetlistSolver {
   /**
    * Resolve o grafo de fios e componentes em nós equipotenciais (NetNodes)
    * e valida a integridade contra colisões de condução direta (RN-BNC-04).
+   * Suporta pontes internas de condutância zero da Protoboard Virtual (Eixo A).
    */
   public static solve(
     circuit: CircuitDefinition,
@@ -143,25 +145,47 @@ export class NetlistSolver {
       return defaultPinResolver(comp, pin, circuit);
     };
 
-    // 1. Construir lista de adjacência de pinos conectados por fios
+    // 1. Construir lista de adjacência de pinos conectados por fios e pontes internas
     const adjacency = new Map<
       string,
-      Array<{ targetKey: string; wireId: string; wire: WireDefinition }>
+      Array<{ targetKey: string; wireId: string; wire?: WireDefinition }>
     >();
     const allPinKeys = new Set<string>();
 
-    for (const wire of circuit.wires) {
-      const fromKey = pinToKey(wire.from.componentId, wire.from.pinId);
-      const toKey = pinToKey(wire.to.componentId, wire.to.pinId);
-
+    const addEdge = (fromKey: string, toKey: string, wireId: string, wire?: WireDefinition) => {
       allPinKeys.add(fromKey);
       allPinKeys.add(toKey);
 
       if (!adjacency.has(fromKey)) adjacency.set(fromKey, []);
       if (!adjacency.has(toKey)) adjacency.set(toKey, []);
 
-      adjacency.get(fromKey)!.push({ targetKey: toKey, wireId: wire.id, wire });
-      adjacency.get(toKey)!.push({ targetKey: fromKey, wireId: wire.id, wire });
+      adjacency.get(fromKey)!.push({ targetKey: toKey, wireId, wire });
+      adjacency.get(toKey)!.push({ targetKey: fromKey, wireId, wire });
+    };
+
+    // 1.1 Fios externos explícitos do circuito
+    for (const wire of circuit.wires) {
+      const fromKey = pinToKey(wire.from.componentId, wire.from.pinId);
+      const toKey = pinToKey(wire.to.componentId, wire.to.pinId);
+      addEdge(fromKey, toKey, wire.id, wire);
+    }
+
+    // 1.2 Pontes internas de condutância zero de componentes (ex: Protoboards virtuais)
+    for (const comp of circuit.components) {
+      if (comp.type.includes('BREADBOARD') || comp.type === 'BOARD_BREADBOARD_HALF') {
+        const bridges = generateBreadboardInternalBridges(comp.id);
+        for (const bridge of bridges) {
+          const fromKey = pinToKey(comp.id, bridge.fromPin);
+          const toKey = pinToKey(comp.id, bridge.toPin);
+          addEdge(fromKey, toKey, bridge.bridgeId);
+        }
+      } else if (comp.parameters?.internalBridges && Array.isArray(comp.parameters.internalBridges)) {
+        for (const bridge of comp.parameters.internalBridges) {
+          const fromKey = pinToKey(comp.id, bridge[0]);
+          const toKey = pinToKey(comp.id, bridge[1]);
+          addEdge(fromKey, toKey, `bridge:${comp.id}:${bridge[0]}_${bridge[1]}`);
+        }
+      }
     }
 
     // 2. Agrupamento em Nós Equipotenciais (BFS)
@@ -311,14 +335,14 @@ export class NetlistSolver {
   }
 
   /**
-   * Encontra o identificador do fio que conecta dois pinos em um nó.
+   * Encontra o identificador do fio ou ponte que conecta dois pinos em um nó.
    */
   private static findConnectingWire(
     startKey: string,
     targetKey: string,
     adjacency: Map<
       string,
-      Array<{ targetKey: string; wireId: string; wire: WireDefinition }>
+      Array<{ targetKey: string; wireId: string; wire?: WireDefinition }>
     >
   ): string {
     const queue: Array<{ currentKey: string; pathWires: string[] }> = [
@@ -347,3 +371,4 @@ export class NetlistSolver {
     return 'unknown_wire';
   }
 }
+

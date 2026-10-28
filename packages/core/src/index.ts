@@ -4,3 +4,4 @@ export * from './netlist.js';
 export * from './circuit-solver.js';
 export * from './workbench.js';
 export * from './grader.js';
+export * from './breadboard.js';
