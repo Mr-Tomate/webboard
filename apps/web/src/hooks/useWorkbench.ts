@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import type {
   ComponentDefinition,
   WireDefinition,
@@ -9,7 +9,12 @@ import type {
   Position2D,
   CircuitDefinition
 } from '@webboard/contracts';
-import { NetlistSolver, type NetlistResult, type NetNode } from '@webboard/core';
+import {
+  NetlistSolver,
+  type NetlistResult,
+  CircuitSolver,
+  type ComponentElectricalState
+} from '@webboard/core';
 import { snapPointToGrid } from '../utils/geometry.js';
 import { COMPONENT_CATALOG } from '../catalog/manifests.js';
 import type { DraggingWireState } from '../types/canvas.js';
@@ -71,10 +76,13 @@ export function useWorkbench() {
   const [fault, setFault] = useState<WorkbenchFaultPayload | null>(null);
   const [draggingWire, setDraggingWire] = useState<DraggingWireState | null>(null);
 
-  /**
-   * Resolução reativa do grafo elétrico em Nós Equipotenciais (NetNodes)
-   * através do NetlistSolver do @webboard/core.
-   */
+  // Estados elétricos e visuais calculados pelo CircuitSolver
+  const [electricalStates, setElectricalStates] = useState<Map<string, ComponentElectricalState>>(
+    new Map()
+  );
+
+  const circuitSolverRef = useRef<CircuitSolver | null>(null);
+
   const circuitDefinition: CircuitDefinition = useMemo(
     () => ({
       schemaVersion: '1.0.0',
@@ -89,33 +97,21 @@ export function useWorkbench() {
     return NetlistSolver.solve(circuitDefinition);
   }, [circuitDefinition]);
 
-  /**
-   * Retorna os IDs dos fios pertencentes à Net destacada.
-   */
   const highlightedWireIds = useMemo(() => {
     if (!hoveredNetId) return new Set<string>();
     const net = netlistResult.nets.find((n) => n.id === hoveredNetId);
     return new Set<string>(net ? net.wireIds : []);
   }, [hoveredNetId, netlistResult]);
 
-  /**
-   * Retorna as chaves `componentId:pinId` pertencentes à Net destacada.
-   */
   const highlightedPinKeys = useMemo(() => {
     if (!hoveredNetId) return new Set<string>();
     const net = netlistResult.nets.find((n) => n.id === hoveredNetId);
     return new Set<string>(net ? net.pins.map((p) => p.pinKey) : []);
   }, [hoveredNetId, netlistResult]);
 
-  /**
-   * Adiciona um novo componente na bancada com alinhamento na grade.
-   */
   const addComponent = useCallback(
     (componentType: string, initialPos: Position2D = { x: 300, y: 200 }) => {
-      if (mode !== 'MODO_EDICAO') {
-        console.warn('[RN-BNC-01] Adição bloqueada: Bancada em simulação.');
-        return;
-      }
+      if (mode !== 'MODO_EDICAO') return;
 
       const manifest = COMPONENT_CATALOG[componentType];
       if (!manifest) return;
@@ -138,9 +134,6 @@ export function useWorkbench() {
     [mode]
   );
 
-  /**
-   * Atualiza a posição de um componente no Canvas aplicando snap à grade.
-   */
   const updateComponentPosition = useCallback(
     (componentId: string, rawPosition: Position2D) => {
       if (mode !== 'MODO_EDICAO') return;
@@ -153,9 +146,6 @@ export function useWorkbench() {
     [mode]
   );
 
-  /**
-   * Remove componente e seus condutores conectados.
-   */
   const deleteComponent = useCallback(
     (componentId: string) => {
       if (mode !== 'MODO_EDICAO') return;
@@ -171,9 +161,6 @@ export function useWorkbench() {
     [mode, selectedComponentId]
   );
 
-  /**
-   * Remove um fio selecionado.
-   */
   const deleteWire = useCallback(
     (wireId: string) => {
       if (mode !== 'MODO_EDICAO') return;
@@ -184,9 +171,6 @@ export function useWorkbench() {
     [mode, selectedWireId]
   );
 
-  /**
-   * Altera a cor de um condutor existente.
-   */
   const updateWireColor = useCallback(
     (wireId: string, color: WireColor) => {
       setWires((prev) =>
@@ -196,9 +180,6 @@ export function useWorkbench() {
     []
   );
 
-  /**
-   * Inicia o arraste de um novo fio a partir de um pino.
-   */
   const startWireDrag = useCallback(
     (componentId: string, pinId: string, worldPoint: Position2D) => {
       if (mode !== 'MODO_EDICAO') return;
@@ -215,9 +196,6 @@ export function useWorkbench() {
     [mode, activeWireColor]
   );
 
-  /**
-   * Adiciona um waypoint intermediário durante a rota do fio elástico.
-   */
   const addWireWaypoint = useCallback(
     (worldPoint: Position2D) => {
       if (!draggingWire) return;
@@ -234,21 +212,14 @@ export function useWorkbench() {
     [draggingWire]
   );
 
-  /**
-   * Atualiza o cursor do fio elástico em tempo real.
-   */
   const updateWireDrag = useCallback((currentPoint: Position2D) => {
     setDraggingWire((prev) => (prev ? { ...prev, currentPoint } : null));
   }, []);
 
-  /**
-   * Conclui a fiação ligando ao pino de destino.
-   */
   const finishWireDrag = useCallback(
     (toComponentId: string, toPinId: string) => {
       if (!draggingWire) return;
 
-      // 1. Proibido ligar o pino nele mesmo
       if (
         draggingWire.fromComponentId === toComponentId &&
         draggingWire.fromPinId === toPinId
@@ -257,7 +228,6 @@ export function useWorkbench() {
         return;
       }
 
-      // 2. Proibido duplicar conexão existente entre os mesmos pinos
       const alreadyExists = wires.some(
         (w) =>
           (w.from.componentId === draggingWire.fromComponentId &&
@@ -302,17 +272,55 @@ export function useWorkbench() {
   }, []);
 
   /**
-   * Inicia a Simulação com Verificação Rigorosa de Curto-Circuito (RN-BNC-04).
+   * Disparado pelo emulador AVR8js quando um pino do microcontrolador transita de nível.
+   * Conecta a CPU ao CircuitSolver e atualiza a física e os estados visuais da bancada.
    */
-  const startSimulation = useCallback(() => {
-    // Valida curto-circuito antes de energizar
+  const handleEmulatorPinChange = useCallback(
+    (pinName: string, level: 'HIGH' | 'LOW') => {
+      const solver = circuitSolverRef.current;
+      if (!solver) return;
+
+      solver.setPinOutput('mcu_uno_01', pinName, level);
+      const stepResult = solver.step(0.001); // avança 1ms virtual
+
+      setElectricalStates(new Map(stepResult.componentStates));
+
+      // Se houver destruição térmica por sobrecorrente (RN-BNC-05) ou curto
+      if (stepResult.hasFault && stepResult.fault) {
+        setMode('ESTADO_FALHA_ENG');
+        setFault(stepResult.fault);
+        if (stepResult.fault.failedComponentId) {
+          setSelectedComponentId(stepResult.fault.failedComponentId);
+        }
+      }
+    },
+    []
+  );
+
+  /**
+   * Inicia a Simulação.
+   */
+  const startSimulation = useCallback((): boolean => {
     if (netlistResult.hasFault && netlistResult.fault) {
       setMode('ESTADO_FALHA_ENG');
       setFault(netlistResult.fault);
       if (netlistResult.fault.failedWireId) {
         setSelectedWireId(netlistResult.fault.failedWireId);
       }
-      return;
+      return false;
+    }
+
+    // Instancia o solver para a sessão energizada
+    const solver = new CircuitSolver(circuitDefinition);
+    circuitSolverRef.current = solver;
+
+    const initialResult = solver.step(0.0);
+    setElectricalStates(new Map(initialResult.componentStates));
+
+    if (initialResult.hasFault && initialResult.fault) {
+      setMode('ESTADO_FALHA_ENG');
+      setFault(initialResult.fault);
+      return false;
     }
 
     setMode('MODO_SIMULACAO');
@@ -320,11 +328,14 @@ export function useWorkbench() {
     setSelectedWireId(null);
     setFault(null);
     setDraggingWire(null);
-  }, [netlistResult]);
+    return true;
+  }, [netlistResult, circuitDefinition]);
 
   const stopSimulation = useCallback(() => {
     setMode('MODO_EDICAO');
     setFault(null);
+    circuitSolverRef.current = null;
+    setElectricalStates(new Map());
   }, []);
 
   const clearWorkbench = useCallback(() => {
@@ -334,6 +345,7 @@ export function useWorkbench() {
     setSelectedComponentId(null);
     setSelectedWireId(null);
     setFault(null);
+    setElectricalStates(new Map());
   }, [mode]);
 
   return {
@@ -345,6 +357,7 @@ export function useWorkbench() {
     hoveredNetId,
     highlightedWireIds,
     highlightedPinKeys,
+    electricalStates,
     netlistResult,
     mode,
     fault,
@@ -363,6 +376,7 @@ export function useWorkbench() {
     updateWireDrag,
     finishWireDrag,
     cancelWireDrag,
+    handleEmulatorPinChange,
     startSimulation,
     stopSimulation,
     clearWorkbench

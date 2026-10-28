@@ -1,6 +1,7 @@
 import React from 'react';
 import { Group, Rect, Text, Circle } from 'react-konva';
 import type { ComponentDefinition, Position2D, WorkbenchMode } from '@webboard/contracts';
+import type { ComponentElectricalState } from '@webboard/core';
 import { COMPONENT_CATALOG } from '../../catalog/manifests.js';
 import { PinAnchorNode } from './PinAnchorNode.js';
 import { snapPointToGrid } from '../../utils/geometry.js';
@@ -11,6 +12,7 @@ interface ComponentNodeProps {
   mode: WorkbenchMode;
   isConnectingWire: boolean;
   highlightedPinKeys: Set<string>;
+  electricalState?: ComponentElectricalState;
   onSelect: (componentId: string) => void;
   onDragEnd: (componentId: string, newPos: Position2D) => void;
   onStartWire: (componentId: string, pinId: string, worldPos: Position2D) => void;
@@ -25,6 +27,7 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   mode,
   isConnectingWire,
   highlightedPinKeys,
+  electricalState,
   onSelect,
   onDragEnd,
   onStartWire,
@@ -39,7 +42,12 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   const isSimulating = mode === 'MODO_SIMULACAO';
   const canDrag = !isSimulating && !component.isLocked;
 
+  const isLedActive = electricalState?.visualState === 'active';
+  const isDestroyed = electricalState?.visualState === 'destroyed' || electricalState?.isDestroyed;
+
   const getThemeColor = () => {
+    if (isDestroyed) return '#2e1014'; // Queimado por sobrecorrente
+
     switch (manifest?.category) {
       case 'MCU':
         return '#005f73';
@@ -91,8 +99,8 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         width={width}
         height={height}
         fill={getThemeColor()}
-        stroke={isSelected ? '#00e599' : '#3f3f46'}
-        strokeWidth={isSelected ? 2.5 : 1.5}
+        stroke={isDestroyed ? '#ef4444' : isSelected ? '#00e599' : '#3f3f46'}
+        strokeWidth={isSelected || isDestroyed ? 2.5 : 1.5}
         cornerRadius={4}
       />
 
@@ -110,12 +118,12 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
             cornerRadius={2}
           />
           <Text
-            text="ATmega328P"
-            fontSize={9}
+            text="ATmega328P 16MHz"
+            fontSize={8}
             fontFamily="monospace"
-            fill="#71717a"
-            x={width / 2 - 35}
-            y={height / 2 - 5}
+            fill="#00e599"
+            x={width / 2 - 38}
+            y={height / 2 - 4}
           />
           <Rect
             x={30}
@@ -127,25 +135,70 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
             strokeWidth={1}
             cornerRadius={2}
           />
+          {/* LED Onboard D13 */}
+          <Circle
+            x={75}
+            y={40}
+            radius={3.5}
+            fill={isLedActive ? '#eab308' : '#3f3f46'}
+            stroke="#18181b"
+            strokeWidth={1}
+          />
+          <Text text="L" fontSize={7} fill="#a1a1aa" x={82} y={37} />
         </Group>
       )}
 
       {component.type === 'ACTUATOR_LED' && (
         <Group>
+          {/* Brilho e emissão de luz quando conduzindo (active) */}
+          {isLedActive && (
+            <Circle
+              x={width / 2}
+              y={24}
+              radius={24}
+              fill="rgba(239, 68, 68, 0.45)"
+              shadowColor="#ef4444"
+              shadowBlur={18}
+            />
+          )}
+
+          {/* Cúpula do LED */}
           <Circle
             x={width / 2}
             y={24}
             radius={16}
-            fill={component.parameters?.color === 'RED' ? '#ef4444' : '#22c55e'}
-            stroke="#ffffff"
+            fill={
+              isDestroyed
+                ? '#1c1917'
+                : isLedActive
+                ? '#ff3333'
+                : component.parameters?.color === 'RED'
+                ? '#ef4444'
+                : '#22c55e'
+            }
+            stroke={isDestroyed ? '#7f1d1d' : '#ffffff'}
             strokeWidth={1.5}
           />
-          <Circle
-            x={width / 2 - 4}
-            y={20}
-            radius={4}
-            fill="rgba(255, 255, 255, 0.6)"
-          />
+          {!isDestroyed && (
+            <Circle
+              x={width / 2 - 4}
+              y={20}
+              radius={4}
+              fill="rgba(255, 255, 255, 0.7)"
+            />
+          )}
+
+          {/* Indicador de queima térmica */}
+          {isDestroyed && (
+            <Text
+              text="🔥 QUEIMADO"
+              fontSize={8}
+              fontStyle="bold"
+              fill="#ef4444"
+              x={width / 2 - 26}
+              y={20}
+            />
+          )}
         </Group>
       )}
 
@@ -174,11 +227,15 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
 
       {/* Rótulo do Componente */}
       <Text
-        text={component.label || manifest?.name || component.type}
+        text={
+          isDestroyed
+            ? `[DESTRUÍDO] ${component.label}`
+            : component.label || manifest?.name || component.type
+        }
         fontSize={11}
         fontFamily="sans-serif"
         fontStyle="bold"
-        fill="#f4f4f5"
+        fill={isDestroyed ? '#f87171' : '#f4f4f5'}
         x={8}
         y={height - 20}
         width={width - 16}

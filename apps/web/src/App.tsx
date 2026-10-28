@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { WireColor } from '@webboard/contracts';
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
@@ -16,6 +16,7 @@ import {
   createSerialMessage,
   appendToSerialBuffer
 } from './utils/serial.js';
+import { AVRBoard } from './emulator/avr-board.js';
 
 export function App() {
   const viewportHook = useViewport(1.0, { x: 50, y: 50 });
@@ -37,7 +38,8 @@ export function App() {
     deleteWire,
     addComponent,
     clearWorkbench,
-    cancelWireDrag
+    cancelWireDrag,
+    handleEmulatorPinChange
   } = workbenchHook;
 
   const {
@@ -49,6 +51,9 @@ export function App() {
     toWorld
   } = viewportHook;
 
+  // Instância do Emulador AVR8js
+  const avrBoardRef = useRef<AVRBoard | null>(null);
+
   // Estado do Editor de Código & Console Serial
   const [isCodePanelOpen, setIsCodePanelOpen] = useState(true);
   const [language, setLanguage] = useState<SupportedLanguage>('CPP');
@@ -58,6 +63,19 @@ export function App() {
     createSerialMessage('Webboard Terminal Serial pronto. Conecte o código à bancada.', 'SYSTEM')
   ]);
   const [baudRate, setBaudRate] = useState<BaudRate>(9600);
+
+  // Se a bancada entrar em ESTADO_FALHA_ENG, para a CPU virtual imediatamente
+  useEffect(() => {
+    if (mode === 'ESTADO_FALHA_ENG' && avrBoardRef.current) {
+      avrBoardRef.current.stop();
+      setSerialMessages((prev) =>
+        appendToSerialBuffer(
+          prev,
+          createSerialMessage(`[HALT] ${fault?.message || 'Falha crítica: Emulação congelada.'}`, 'ERROR')
+        )
+      );
+    }
+  }, [mode, fault]);
 
   // Teclas de atalho globais (Delete, Esc)
   useEffect(() => {
@@ -101,30 +119,51 @@ export function App() {
     }
   };
 
-  // Envio de comando UART pelo usuário
+  // Envio de comando UART pelo usuário para o MCU virtual
   const handleSendSerialMessage = useCallback((text: string) => {
     const userMsg = createSerialMessage(text, 'TX');
     setSerialMessages((prev) => appendToSerialBuffer(prev, userMsg));
 
-    // Resposta de eco simulada na serial virtual
-    setTimeout(() => {
-      const echoMsg = createSerialMessage(`[ECHO UART ${baudRate}] ${text}`, 'RX');
-      setSerialMessages((prev) => appendToSerialBuffer(prev, echoMsg));
-    }, 100);
-  }, [baudRate]);
+    if (avrBoardRef.current) {
+      avrBoardRef.current.sendSerialString(text + '\n');
+    }
+  }, []);
 
-  // Transições de simulação com feedback no monitor serial
+  // Inicia simulação com o emulador AVR8js sincronizado ao CircuitSolver
   const handleStartSimulation = useCallback(() => {
-    startSimulation();
+    const ok = startSimulation();
+    if (!ok) return;
+
+    // Cria e inicializa a CPU ATmega328P
+    const board = new AVRBoard();
+    avrBoardRef.current = board;
+
+    // Escuta transmissões seriais da CPU
+    board.onSerialOutput((line) => {
+      setSerialMessages((prev) => appendToSerialBuffer(prev, createSerialMessage(line, 'RX')));
+    });
+
+    // Escuta transições dos pinos e sincroniza com o CircuitSolver
+    board.onPinChange((pinName, level) => {
+      handleEmulatorPinChange(pinName, level);
+    });
+
+    // Inicia execução a 16MHz simulados
+    board.start(10000);
+
     setSerialMessages((prev) =>
       appendToSerialBuffer(
         prev,
-        createSerialMessage('[SISTEMA] Bancada energizada. CPU ATmega328P emulando a 16MHz.', 'SYSTEM')
+        createSerialMessage('[SISTEMA] CPU ATmega328P emulando a 16MHz via AVR8js.', 'SYSTEM')
       )
     );
-  }, [startSimulation]);
+  }, [startSimulation, handleEmulatorPinChange]);
 
   const handleStopSimulation = useCallback(() => {
+    if (avrBoardRef.current) {
+      avrBoardRef.current.stop();
+      avrBoardRef.current = null;
+    }
     stopSimulation();
     setSerialMessages((prev) =>
       appendToSerialBuffer(

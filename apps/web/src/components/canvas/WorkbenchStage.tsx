@@ -32,6 +32,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     selectedWireId,
     highlightedWireIds,
     highlightedPinKeys,
+    electricalStates,
     netlistResult,
     mode,
     fault,
@@ -99,7 +100,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       return;
     }
 
-    // Clique no palco durante criação de fio: insere Waypoint intermediário!
     if (draggingWire && e.evt.button === 0) {
       const stage = stageRef.current;
       if (stage) {
@@ -112,7 +112,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       }
     }
 
-    // Clique no fundo limpa seleções e cancela drag de fio se for botão direito
     if (e.target === stageRef.current) {
       setSelectedComponentId(null);
       setSelectedWireId(null);
@@ -148,7 +147,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     }
   };
 
-  // Hover de fios e pinos para destacar nós elétricos (Net Highlighting)
   const handleWireHoverStart = (wireId: string) => {
     const net = netlistResult.nets.find((n) => n.wireIds.includes(wireId));
     if (net) setHoveredNetId(net.id);
@@ -218,7 +216,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
           ))}
         </Layer>
 
-        {/* Camada 3: Componentes Físicos com Pinos Ancorados */}
+        {/* Camada 3: Componentes Físicos com Pinos Ancorados e Estados Elétricos */}
         <Layer>
           {components.map((component) => (
             <ComponentNode
@@ -228,6 +226,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               mode={mode}
               isConnectingWire={!!draggingWire}
               highlightedPinKeys={highlightedPinKeys}
+              electricalState={electricalStates.get(component.id)}
               onSelect={setSelectedComponentId}
               onDragEnd={updateComponentPosition}
               onStartWire={startWireDrag}
@@ -257,7 +256,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               lineCap="round"
               lineJoin="round"
             />
-            {/* Vértices waypoints colocados */}
             {draggingWire.waypoints.map((wp, idx) => (
               <Circle
                 key={`drag_wp_${idx}`}
@@ -269,7 +267,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
                 strokeWidth={1.5}
               />
             ))}
-            {/* Terminal no cursor */}
             <Circle
               x={draggingWire.currentPoint.x}
               y={draggingWire.currentPoint.y}
