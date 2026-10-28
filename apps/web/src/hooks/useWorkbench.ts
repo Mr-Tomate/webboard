@@ -42,7 +42,7 @@ export function useWorkbench() {
       type: 'ACTUATOR_LED',
       label: 'LED Vermelho',
       isLocked: false,
-      position: { x: 500, y: 160 },
+      position: { x: 520, y: 160 },
       parameters: { color: 'RED' }
     }
   ]);
@@ -220,14 +220,16 @@ export function useWorkbench() {
     (toComponentId: string, toPinId: string) => {
       if (!draggingWire) return;
 
+      // Se soltar ou clicar no mesmo pino de origem, NÃO cancela e NÃO fecha curto consigo mesmo
+      // Mantém a criação ativa aguardando o clique no pino de destino
       if (
         draggingWire.fromComponentId === toComponentId &&
         draggingWire.fromPinId === toPinId
       ) {
-        setDraggingWire(null);
         return;
       }
 
+      // Evita duplicidade de fios entre o mesmo par de pinos
       const alreadyExists = wires.some(
         (w) =>
           (w.from.componentId === draggingWire.fromComponentId &&

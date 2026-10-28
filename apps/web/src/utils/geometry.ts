@@ -6,6 +6,18 @@ export const MIN_ZOOM = 0.2;
 export const MAX_ZOOM = 3.0;
 
 /**
+ * Interface mínima de contexto gráfico para traçar caminhos 2D,
+ * compatível tanto com CanvasRenderingContext2D nativo quanto com Konva.Context.
+ */
+export interface PathDrawingContext {
+  beginPath(): void;
+  moveTo(x: number, y: number): void;
+  bezierCurveTo(cp1x: number, cp1y: number, cp2x: number, cp2y: number, x: number, y: number): void;
+  quadraticCurveTo(cpx: number, cpy: number, x: number, y: number): void;
+  lineTo(x: number, y: number): void;
+}
+
+/**
  * Arredonda um valor escalar para o ponto mais próximo da grade (snap).
  */
 export function snapToGrid(val: number, gridSize: number = GRID_SIZE): number {
@@ -139,12 +151,12 @@ export function getWirePathPoints(
 }
 
 /**
- * Traça o caminho do fio no contexto 2D do Canvas.
+ * Traça o caminho do fio no contexto 2D (HTML5 Canvas ou Konva.Context).
  * Se houver waypoints, conecta através dos waypoints com curvas suaves ou retas.
- * Se não houver waypoints, usa a curva Bézier natural.
+ * Se não houver waypoints, usa a curva Bézier natural com caimento gravitacional.
  */
 export function drawWirePath(
-  ctx: CanvasRenderingContext2D,
+  ctx: PathDrawingContext,
   startPos: Position2D,
   endPos: Position2D,
   waypoints?: WireWaypoint[]

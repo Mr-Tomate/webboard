@@ -41,10 +41,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'ACTUATOR_LED',
     name: 'LED Difuso 5mm',
     category: 'ACTUATOR',
-    dimensions: { width: 60, height: 60 },
+    dimensions: { width: 70, height: 75 },
     pins: [
-      { id: 'ANODE', label: 'Ânodo (+)', type: 'PASSIVE', anchorPosition: { x: 20, y: 55 } },
-      { id: 'CATHODE', label: 'Cátodo (-)', type: 'PASSIVE', anchorPosition: { x: 40, y: 55 } }
+      { id: 'ANODE', label: 'Anodo(+)', type: 'PASSIVE', anchorPosition: { x: 22, y: 65 } },
+      { id: 'CATHODE', label: 'Catodo(-)', type: 'PASSIVE', anchorPosition: { x: 48, y: 65 } }
     ],
     defaultParameters: {
       color: 'RED',
@@ -58,10 +58,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'PASSIVE_RESISTOR',
     name: 'Resistor de Precisão',
     category: 'PASSIVE',
-    dimensions: { width: 80, height: 40 },
+    dimensions: { width: 90, height: 44 },
     pins: [
-      { id: 'PIN_1', label: 'Terminal 1', type: 'PASSIVE', anchorPosition: { x: 5, y: 20 } },
-      { id: 'PIN_2', label: 'Terminal 2', type: 'PASSIVE', anchorPosition: { x: 75, y: 20 } }
+      { id: 'PIN_1', label: '1', type: 'PASSIVE', anchorPosition: { x: 8, y: 22 } },
+      { id: 'PIN_2', label: '2', type: 'PASSIVE', anchorPosition: { x: 82, y: 22 } }
     ],
     defaultParameters: {
       resistanceOhms: 220,
@@ -75,10 +75,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'INPUT_PUSHBUTTON',
     name: 'Botão Táctil (Pushbutton)',
     category: 'INPUT',
-    dimensions: { width: 60, height: 60 },
+    dimensions: { width: 70, height: 60 },
     pins: [
-      { id: 'PIN_1', label: 'Terminal A', type: 'PASSIVE', anchorPosition: { x: 10, y: 30 } },
-      { id: 'PIN_2', label: 'Terminal B', type: 'PASSIVE', anchorPosition: { x: 50, y: 30 } }
+      { id: 'PIN_1', label: 'A', type: 'PASSIVE', anchorPosition: { x: 10, y: 30 } },
+      { id: 'PIN_2', label: 'B', type: 'PASSIVE', anchorPosition: { x: 60, y: 30 } }
     ],
     defaultParameters: {
       isNormallyOpen: true
@@ -90,11 +90,11 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'INPUT_POTENTIOMETER',
     name: 'Potenciômetro Rotativo',
     category: 'INPUT',
-    dimensions: { width: 80, height: 60 },
+    dimensions: { width: 90, height: 70 },
     pins: [
-      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 15, y: 55 } },
-      { id: 'SIG', label: 'Sinal (Cursor)', type: 'ANALOG_IN', anchorPosition: { x: 40, y: 55 } },
-      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 65, y: 55 } }
+      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 18, y: 62 } },
+      { id: 'SIG', label: 'SIG', type: 'ANALOG_IN', anchorPosition: { x: 45, y: 62 } },
+      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 72, y: 62 } }
     ],
     defaultParameters: {
       totalResistanceOhms: 10000,
@@ -107,10 +107,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'ACTUATOR_BUZZER',
     name: 'Buzzer Piezoelétrico',
     category: 'ACTUATOR',
-    dimensions: { width: 60, height: 60 },
+    dimensions: { width: 70, height: 70 },
     pins: [
-      { id: 'POSITIVE', label: '(+)', type: 'PASSIVE', anchorPosition: { x: 20, y: 55 } },
-      { id: 'NEGATIVE', label: '(-)', type: 'POWER_GND', anchorPosition: { x: 40, y: 55 } }
+      { id: 'POSITIVE', label: '(+)', type: 'PASSIVE', anchorPosition: { x: 22, y: 62 } },
+      { id: 'NEGATIVE', label: '(-)', type: 'POWER_GND', anchorPosition: { x: 48, y: 62 } }
     ],
     defaultParameters: {
       frequencyHz: 2000
@@ -122,12 +122,12 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'SENSOR_ULTRASONIC_HCSR04',
     name: 'Sensor Ultrassônico HC-SR04',
     category: 'SENSOR',
-    dimensions: { width: 120, height: 60 },
+    dimensions: { width: 130, height: 70 },
     pins: [
-      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 30, y: 55 } },
-      { id: 'TRIG', label: 'Trig', type: 'DIGITAL_IO', anchorPosition: { x: 50, y: 55 } },
-      { id: 'ECHO', label: 'Echo', type: 'DIGITAL_IO', anchorPosition: { x: 70, y: 55 } },
-      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 90, y: 55 } }
+      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 30, y: 64 } },
+      { id: 'TRIG', label: 'Trig', type: 'DIGITAL_IO', anchorPosition: { x: 55, y: 64 } },
+      { id: 'ECHO', label: 'Echo', type: 'DIGITAL_IO', anchorPosition: { x: 75, y: 64 } },
+      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 100, y: 64 } }
     ],
     defaultParameters: {
       simulatedDistanceCm: 25.0

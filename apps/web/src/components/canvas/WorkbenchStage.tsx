@@ -58,6 +58,9 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       if (e.code === 'Space' && !e.repeat) {
         setIsSpacePressed(true);
       }
+      if (e.key === 'Escape') {
+        cancelWireDrag();
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
@@ -72,7 +75,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [cancelWireDrag]);
 
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
@@ -100,7 +103,16 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       return;
     }
 
-    if (draggingWire && e.evt.button === 0) {
+    // Clique direito cancela a passagem de condutor
+    if (e.evt.button === 2) {
+      if (draggingWire) {
+        cancelWireDrag();
+        return;
+      }
+    }
+
+    // Clique com botão esquerdo no fundo do palco enquanto puxa um fio: adiciona waypoint intermediário
+    if (draggingWire && e.evt.button === 0 && e.target === stageRef.current) {
       const stage = stageRef.current;
       if (stage) {
         const pointer = stage.getPointerPosition();
@@ -112,13 +124,11 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       }
     }
 
+    // Clique no fundo vazio desmarca seleções
     if (e.target === stageRef.current) {
       setSelectedComponentId(null);
       setSelectedWireId(null);
       setHoveredNetId(null);
-      if (e.evt.button === 2) {
-        cancelWireDrag();
-      }
     }
   };
 
@@ -171,7 +181,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
 
   return (
     <div
-      className="w-full h-full relative overflow-hidden"
+      className="w-full h-full relative overflow-hidden select-none"
       style={{ cursor: cursorStyle }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -240,38 +250,59 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
         {/* Camada 4: Fio Elástico com Waypoints em Criação */}
         {draggingWire && (
           <Layer>
+            {/* Halo / Contorno escuro da linha elástica */}
             <Shape
-              sceneFunc={(ctx) => {
-                const context = ctx._context as CanvasRenderingContext2D;
+              sceneFunc={(ctx, shape) => {
                 drawWirePath(
-                  context,
+                  ctx as any,
                   draggingWire.fromPoint,
                   draggingWire.currentPoint,
                   draggingWire.waypoints
                 );
+                (ctx as any).strokeShape(shape);
               }}
-              stroke="#00e599"
-              strokeWidth={3}
-              dash={[6, 4]}
+              stroke="#09090b"
+              strokeWidth={5}
               lineCap="round"
               lineJoin="round"
             />
+            {/* Núcleo do fio elástico animado com tracejado */}
+            <Shape
+              sceneFunc={(ctx, shape) => {
+                drawWirePath(
+                  ctx as any,
+                  draggingWire.fromPoint,
+                  draggingWire.currentPoint,
+                  draggingWire.waypoints
+                );
+                (ctx as any).strokeShape(shape);
+              }}
+              stroke="#00e599"
+              strokeWidth={3}
+              dash={[8, 5]}
+              lineCap="round"
+              lineJoin="round"
+            />
+            {/* Waypoints intermediários já fixados */}
             {draggingWire.waypoints.map((wp, idx) => (
               <Circle
                 key={`drag_wp_${idx}`}
                 x={wp.x}
                 y={wp.y}
-                radius={4}
+                radius={4.5}
                 fill="#00e599"
                 stroke="#09090b"
                 strokeWidth={1.5}
               />
             ))}
+            {/* Ponta guia magnética seguindo o cursor */}
             <Circle
               x={draggingWire.currentPoint.x}
               y={draggingWire.currentPoint.y}
-              radius={5}
+              radius={6}
               fill="#00e599"
+              stroke="#09090b"
+              strokeWidth={1.5}
             />
           </Layer>
         )}

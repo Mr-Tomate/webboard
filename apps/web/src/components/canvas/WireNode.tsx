@@ -1,6 +1,6 @@
 import React from 'react';
 import { Group, Shape, Circle } from 'react-konva';
-import type { WireDefinition, ComponentDefinition, Position2D } from '@webboard/contracts';
+import type { WireDefinition, ComponentDefinition } from '@webboard/contracts';
 import { COMPONENT_CATALOG } from '../../catalog/manifests.js';
 import { getPinAbsolutePosition, drawWirePath } from '../../utils/geometry.js';
 
@@ -85,54 +85,57 @@ export const WireNode: React.FC<WireNodeProps> = ({
       onMouseEnter={() => onHoverStart && onHoverStart(wire.id)}
       onMouseLeave={() => onHoverEnd && onHoverEnd()}
     >
-      {/* Halo de realce de nó elétrico (Net Highlighting) ou falha */}
+      {/* 1. Halo de Realce Equipotencial (Net Highlighting) ou Falha Elétrica */}
       {(isNetHighlighted || isSelected || isFailedWire) && (
         <Shape
-          sceneFunc={(ctx) => {
-            const context = ctx._context as CanvasRenderingContext2D;
-            drawWirePath(context, startPos, endPos, wire.waypoints);
+          sceneFunc={(ctx, shape) => {
+            drawWirePath(ctx as any, startPos, endPos, wire.waypoints);
+            (ctx as any).strokeShape(shape);
           }}
           stroke={isFailedWire ? '#ef4444' : isSelected ? '#00e599' : '#38bdf8'}
           strokeWidth={isFailedWire ? 10 : isSelected ? 8 : 7}
-          opacity={0.7}
+          opacity={0.75}
           lineCap="round"
           lineJoin="round"
           shadowColor={isFailedWire ? '#ef4444' : isSelected ? '#00e599' : '#38bdf8'}
           shadowBlur={12}
+          hitStrokeWidth={0}
         />
       )}
 
-      {/* Sombra / Borda Neobrutalista preta */}
+      {/* 2. Borda / Sombra de profundidade preta (Contorno Neobrutalista) */}
       <Shape
-        sceneFunc={(ctx) => {
-          const context = ctx._context as CanvasRenderingContext2D;
-          drawWirePath(context, startPos, endPos, wire.waypoints);
+        sceneFunc={(ctx, shape) => {
+          drawWirePath(ctx as any, startPos, endPos, wire.waypoints);
+          (ctx as any).strokeShape(shape);
         }}
         stroke="#09090b"
-        strokeWidth={4.5}
+        strokeWidth={5}
         lineCap="round"
         lineJoin="round"
+        hitStrokeWidth={0}
       />
 
-      {/* Núcleo do condutor elétrico com a cor selecionada */}
+      {/* 3. Núcleo condutor colorido com área de clique ampliada */}
       <Shape
-        sceneFunc={(ctx) => {
-          const context = ctx._context as CanvasRenderingContext2D;
-          drawWirePath(context, startPos, endPos, wire.waypoints);
+        sceneFunc={(ctx, shape) => {
+          drawWirePath(ctx as any, startPos, endPos, wire.waypoints);
+          (ctx as any).strokeShape(shape);
         }}
         stroke={getWireStrokeColor()}
-        strokeWidth={2.8}
+        strokeWidth={3}
         lineCap="round"
         lineJoin="round"
+        hitStrokeWidth={16}
       />
 
-      {/* Vértices / Waypoints visíveis se existirem */}
+      {/* 4. Vértices intermediários / Waypoints com snap */}
       {wire.waypoints?.map((wp, idx) => (
         <Circle
           key={`wp_${idx}`}
           x={wp.x}
           y={wp.y}
-          radius={3.5}
+          radius={4}
           fill={isSelected ? '#00e599' : '#ffffff'}
           stroke="#09090b"
           strokeWidth={1.5}
