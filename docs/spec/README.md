@@ -13,6 +13,8 @@ Esta pasta contém a especificação de domínio, regras de negócio e requisito
 8. [07 - Especificação de Componentes Básicos e Bateria de Testes do Core](07_especificacao_componentes_e_testes_base.md)
 9. [08 - Extensibilidade e Arquitetura de Pacotes de Componentes](08_extensibilidade_e_pacotes_de_componentes.md)
 10. [09 - Arquitetura de Software, Stack Tecnológica e Infraestrutura](09_arquitetura_de_software_e_infraestrutura.md)
+11. [10 - Protocolo de Comunicação e Colaboração entre Agentes via ai-memory](10_protocolo_colaboracao_agentes_ai_memory.md)
+12. [11 - Plano de Execução Incremental (Tijolo a Tijolo)](11_plano_de_execucao_tijolo_a_tijolo.md)
 
 ---
 *Documento consolidado e mantido em sincronia com o repositório de memória compartilhada `ai-memory`.*
