@@ -3,10 +3,11 @@ import type { WireColor } from '@webboard/contracts';
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
 import { WorkbenchStage } from './components/canvas/WorkbenchStage.js';
-import { Toolbar } from './components/ui/Toolbar.js';
+import { Toolbar, type ActiveAppView } from './components/ui/Toolbar.js';
 import { CatalogSidebar } from './components/ui/CatalogSidebar.js';
 import { StatusBar } from './components/ui/StatusBar.js';
 import { CodeWorkspacePanel } from './components/editor/CodeWorkspacePanel.js';
+import { PanopticDashboard } from './components/dashboard/PanopticDashboard.js';
 import type { SupportedLanguage } from './components/editor/CodeEditor.js';
 import {
   type SerialMessage,
@@ -16,6 +17,13 @@ import {
   createSerialMessage,
   appendToSerialBuffer
 } from './utils/serial.js';
+import {
+  type StudentWorkspacePulse
+} from './types/telemetry.js';
+import {
+  SAMPLE_CLASSROOM_WORKSPACES,
+  addPedagogicalNote
+} from './utils/telemetry.js';
 import { AVRBoard } from './emulator/avr-board.js';
 
 export function App() {
@@ -51,6 +59,13 @@ export function App() {
     toWorld
   } = viewportHook;
 
+  // Alternância de Visão (Bancada do Aluno vs Painel Panóptico do Professor)
+  const [currentView, setCurrentView] = useState<ActiveAppView>('STUDENT_BENCH');
+  const [isMirrorMode, setIsMirrorMode] = useState(false);
+  const [classroomWorkspaces, setClassroomWorkspaces] = useState<StudentWorkspacePulse[]>(
+    SAMPLE_CLASSROOM_WORKSPACES
+  );
+
   // Instância do Emulador AVR8js
   const avrBoardRef = useRef<AVRBoard | null>(null);
 
@@ -80,6 +95,8 @@ export function App() {
   // Teclas de atalho globais (Delete, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isMirrorMode) return; // View-only (RN-PED-01)
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedComponentId) {
           deleteComponent(selectedComponentId);
@@ -93,9 +110,10 @@ export function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedComponentId, selectedWireId, deleteComponent, deleteWire, cancelWireDrag]);
+  }, [selectedComponentId, selectedWireId, deleteComponent, deleteWire, cancelWireDrag, isMirrorMode]);
 
   const handleAddComponentAtCenter = (type: string) => {
+    if (isMirrorMode) return;
     const centerScreen = {
       x: isCodePanelOpen ? (dimensions.width - 520) / 2 : dimensions.width / 2,
       y: dimensions.height / 2
@@ -105,6 +123,7 @@ export function App() {
   };
 
   const handleDeleteSelected = () => {
+    if (isMirrorMode) return;
     if (selectedComponentId) {
       deleteComponent(selectedComponentId);
     } else if (selectedWireId) {
@@ -113,13 +132,13 @@ export function App() {
   };
 
   const handleSelectWireColor = (color: WireColor) => {
+    if (isMirrorMode) return;
     setActiveWireColor(color);
     if (selectedWireId) {
       updateWireColor(selectedWireId, color);
     }
   };
 
-  // Envio de comando UART pelo usuário para o MCU virtual
   const handleSendSerialMessage = useCallback((text: string) => {
     const userMsg = createSerialMessage(text, 'TX');
     setSerialMessages((prev) => appendToSerialBuffer(prev, userMsg));
@@ -129,26 +148,22 @@ export function App() {
     }
   }, []);
 
-  // Inicia simulação com o emulador AVR8js sincronizado ao CircuitSolver
   const handleStartSimulation = useCallback(() => {
+    if (isMirrorMode) return;
     const ok = startSimulation();
     if (!ok) return;
 
-    // Cria e inicializa a CPU ATmega328P
     const board = new AVRBoard();
     avrBoardRef.current = board;
 
-    // Escuta transmissões seriais da CPU
     board.onSerialOutput((line) => {
       setSerialMessages((prev) => appendToSerialBuffer(prev, createSerialMessage(line, 'RX')));
     });
 
-    // Escuta transições dos pinos e sincroniza com o CircuitSolver
     board.onPinChange((pinName, level) => {
       handleEmulatorPinChange(pinName, level);
     });
 
-    // Inicia execução a 16MHz simulados
     board.start(10000);
 
     setSerialMessages((prev) =>
@@ -157,7 +172,7 @@ export function App() {
         createSerialMessage('[SISTEMA] CPU ATmega328P emulando a 16MHz via AVR8js.', 'SYSTEM')
       )
     );
-  }, [startSimulation, handleEmulatorPinChange]);
+  }, [startSimulation, handleEmulatorPinChange, isMirrorMode]);
 
   const handleStopSimulation = useCallback(() => {
     if (avrBoardRef.current) {
@@ -173,6 +188,25 @@ export function App() {
     );
   }, [stopSimulation]);
 
+  const handleMirrorWorkspace = (ws: StudentWorkspacePulse) => {
+    setIsMirrorMode(true);
+    setCurrentView('STUDENT_BENCH');
+  };
+
+  const handleExitMirrorMode = () => {
+    setIsMirrorMode(false);
+  };
+
+  const handleAddPedagogicalNote = (workspaceId: string, text: string, targetComponentId?: string) => {
+    setClassroomWorkspaces((prev) =>
+      prev.map((ws) =>
+        ws.workspaceId === workspaceId
+          ? addPedagogicalNote(ws, 'Prof. Titular', text, targetComponentId)
+          : ws
+      )
+    );
+  };
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#121214]">
       {/* Barra de Ferramentas Superior */}
@@ -184,8 +218,16 @@ export function App() {
         hasSelectedWire={!!selectedWireId}
         activeWireColor={activeWireColor}
         isCodePanelOpen={isCodePanelOpen}
+        currentView={currentView}
+        isMirrorMode={isMirrorMode}
         onSelectWireColor={handleSelectWireColor}
         onToggleCodePanel={() => setIsCodePanelOpen(!isCodePanelOpen)}
+        onToggleView={() =>
+          setCurrentView(
+            currentView === 'STUDENT_BENCH' ? 'TEACHER_DASHBOARD' : 'STUDENT_BENCH'
+          )
+        }
+        onExitMirrorMode={handleExitMirrorMode}
         onStartSimulation={handleStartSimulation}
         onStopSimulation={handleStopSimulation}
         onZoomIn={zoomIn}
@@ -195,44 +237,61 @@ export function App() {
         onClearWorkbench={clearWorkbench}
       />
 
-      {/* Catálogo Lateral de Componentes */}
-      <CatalogSidebar
-        mode={mode}
-        onAddComponent={handleAddComponentAtCenter}
-      />
+      {/* Visão 1: Bancada do Aluno / Espelho */}
+      {currentView === 'STUDENT_BENCH' ? (
+        <>
+          {/* Catálogo Lateral de Componentes */}
+          {!isMirrorMode && (
+            <CatalogSidebar
+              mode={mode}
+              onAddComponent={handleAddComponentAtCenter}
+            />
+          )}
 
-      {/* Canvas Konva 2D da Bancada */}
-      <WorkbenchStage
-        viewportHook={viewportHook}
-        workbenchHook={workbenchHook}
-      />
+          {/* Canvas Konva 2D da Bancada */}
+          <WorkbenchStage
+            viewportHook={viewportHook}
+            workbenchHook={workbenchHook}
+          />
 
-      {/* Painel Lateral do Monaco Editor & Monitor Serial */}
-      <CodeWorkspacePanel
-        isOpen={isCodePanelOpen}
-        onToggle={() => setIsCodePanelOpen(!isCodePanelOpen)}
-        language={language}
-        code={language === 'CPP' ? cppCode : pythonCode}
-        isReadOnly={mode === 'MODO_SIMULACAO'}
-        onCodeChange={(val) => {
-          if (language === 'CPP') setCppCode(val ?? '');
-          else setPythonCode(val ?? '');
-        }}
-        onLanguageChange={setLanguage}
-        serialMessages={serialMessages}
-        baudRate={baudRate}
-        onBaudRateChange={setBaudRate}
-        onSendSerialMessage={handleSendSerialMessage}
-        onClearSerial={() => setSerialMessages([])}
-      />
+          {/* Painel Lateral do Monaco Editor & Monitor Serial */}
+          <CodeWorkspacePanel
+            isOpen={isCodePanelOpen}
+            onToggle={() => setIsCodePanelOpen(!isCodePanelOpen)}
+            language={language}
+            code={language === 'CPP' ? cppCode : pythonCode}
+            isReadOnly={mode === 'MODO_SIMULACAO' || isMirrorMode}
+            onCodeChange={(val) => {
+              if (isMirrorMode) return;
+              if (language === 'CPP') setCppCode(val ?? '');
+              else setPythonCode(val ?? '');
+            }}
+            onLanguageChange={setLanguage}
+            serialMessages={serialMessages}
+            baudRate={baudRate}
+            onBaudRateChange={setBaudRate}
+            onSendSerialMessage={handleSendSerialMessage}
+            onClearSerial={() => setSerialMessages([])}
+          />
 
-      {/* Barra de Status Inferior */}
-      <StatusBar
-        mode={mode}
-        fault={fault}
-        componentCount={components.length}
-        wireCount={wires.length}
-      />
+          {/* Barra de Status Inferior */}
+          <StatusBar
+            mode={mode}
+            fault={fault}
+            componentCount={components.length}
+            wireCount={wires.length}
+          />
+        </>
+      ) : (
+        /* Visão 2: Painel Panóptico do Professor */
+        <div className="pt-20 w-full h-full">
+          <PanopticDashboard
+            workspaces={classroomWorkspaces}
+            onMirrorWorkspace={handleMirrorWorkspace}
+            onAddNote={handleAddPedagogicalNote}
+          />
+        </div>
+      )}
     </div>
   );
 }

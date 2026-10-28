@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@webboard/components": "*",
     "@webboard/contracts": "*",
     "@webboard/core": "*",
-    "avr8js": "^0.21.1",
+    "avr8js": "^0.18.2",
     "konva": "^10.9.0",
     "lucide-react": "^1.63.0",
     "react": "^19.3.1",
@@ -21,12 +22,12 @@
     "react-konva": "^19.3.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.2.0",
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.2.0",
     "typescript": "^5.7.3",
     "vite": "^8.3.5"
   }
