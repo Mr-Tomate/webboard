@@ -16,12 +16,12 @@ interface WorkbenchStageProps {
 /**
  * WorkbenchStage - Pipeline Gráfico Konva 2D em 5 Camadas Isoladas.
  *
- * Particionado conforme Spec 12 para isolamento de redesenho e garantia de 60 FPS:
- * - Layer 1: Grid & Background (listening=false)
- * - Layer 2: WiresLayer (condutores conectados)
- * - Layer 3: ComponentsLayer (componentes vetorizados SVG e pinos)
- * - Layer 4: InteractionLayer (cabo elétrico dinâmico sendo esticado pelo mouse)
- * - Layer 5: EffectsLayer (halos de luz difusa, faíscas de curto e alertas de falha)
+ * Hierarquia de Z-Index corrigida para máxima fidelidade física da bancada:
+ * - Layer 1: Grid & Background (GridLayer nativo com listening=false)
+ * - Layer 2: Componentes Físicos e Placas (Arduino, sensores, atuadores)
+ * - Layer 3: Condutores (Wires) Plugados (cabos elétricos passam POR CIMA das placas)
+ * - Layer 4: Interação Ativa (cabo elétrico dinâmico sendo esticado pelo mouse a 60 FPS)
+ * - Layer 5: Alertas e Efeitos Visuais (FX / Glows / Queimas)
  */
 export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   viewportHook,
@@ -212,38 +212,18 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
         onTouchEnd={handleMouseUp}
       >
         {/* ========================================================
-            CAMADA 1: Grid & Background (Cache estático, sem eventos)
+            CAMADA 1: Grid & Background (GridLayer direto no Stage)
             ======================================================== */}
-        <Layer id="layer-grid" listening={false}>
-          <GridLayer
-            stageOffset={viewport.offset}
-            scale={viewport.scale}
-            width={dimensions.width}
-            height={dimensions.height}
-          />
-        </Layer>
+        <GridLayer
+          stageOffset={viewport.offset}
+          scale={viewport.scale}
+          width={dimensions.width}
+          height={dimensions.height}
+        />
 
         {/* ========================================================
-            CAMADA 2: Condutores (Wires) Estáticos
-            ======================================================== */}
-        <Layer id="layer-wires">
-          {wires.map((wire) => (
-            <WireNode
-              key={wire.id}
-              wire={wire}
-              components={components}
-              isSelected={selectedWireId === wire.id}
-              isNetHighlighted={highlightedWireIds.has(wire.id)}
-              isFailedWire={fault?.failedWireId === wire.id}
-              onSelect={setSelectedWireId}
-              onHoverStart={handleWireHoverStart}
-              onHoverEnd={handleHoverEnd}
-            />
-          ))}
-        </Layer>
-
-        {/* ========================================================
-            CAMADA 3: Componentes Físicos e Pinos Ancorados
+            CAMADA 2: Componentes Físicos e Placas de Circuito
+            (Renderizados antes dos fios para que os fios fiquem POR CIMA)
             ======================================================== */}
         <Layer id="layer-components">
           {components.map((component) => (
@@ -266,12 +246,49 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
         </Layer>
 
         {/* ========================================================
+            CAMADA 3: Condutores (Wires) Plugados com Terminais
+            (Ficam POR CIMA das placas e componentes físicos)
+            ======================================================== */}
+        <Layer id="layer-wires">
+          {wires.map((wire) => (
+            <WireNode
+              key={wire.id}
+              wire={wire}
+              components={components}
+              isSelected={selectedWireId === wire.id}
+              isNetHighlighted={highlightedWireIds.has(wire.id)}
+              isFailedWire={fault?.failedWireId === wire.id}
+              onSelect={setSelectedWireId}
+              onHoverStart={handleWireHoverStart}
+              onHoverEnd={handleHoverEnd}
+            />
+          ))}
+        </Layer>
+
+        {/* ========================================================
             CAMADA 4: Interação Ativa (Fio em arraste a 60 FPS)
             ======================================================== */}
         <Layer id="layer-interaction">
           {draggingWire && (
             <>
-              {/* Contorno Neobrutalista do fio em traçado */}
+              {/* Sombra projetada do cabo em criação */}
+              <Shape
+                sceneFunc={(ctx, shape) => {
+                  drawWirePath(
+                    ctx as any,
+                    draggingWire.fromPoint,
+                    draggingWire.currentPoint,
+                    draggingWire.waypoints
+                  );
+                  (ctx as any).strokeShape(shape);
+                }}
+                stroke="rgba(0, 0, 0, 0.45)"
+                strokeWidth={7}
+                lineCap="round"
+                lineJoin="round"
+                listening={false}
+              />
+              {/* Contorno Neobrutalista do fio */}
               <Shape
                 sceneFunc={(ctx, shape) => {
                   drawWirePath(
@@ -306,6 +323,30 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
                 lineJoin="round"
                 listening={false}
               />
+              {/* Terminal Plug de Origem (Conector Dupont fixo) */}
+              <Circle
+                x={draggingWire.fromPoint.x}
+                y={draggingWire.fromPoint.y}
+                radius={7}
+                fill="#09090b"
+                listening={false}
+              />
+              <Circle
+                x={draggingWire.fromPoint.x}
+                y={draggingWire.fromPoint.y}
+                radius={5}
+                fill="#00e599"
+                stroke="#18181b"
+                strokeWidth={1.5}
+                listening={false}
+              />
+              <Circle
+                x={draggingWire.fromPoint.x}
+                y={draggingWire.fromPoint.y}
+                radius={2}
+                fill="#ffffff"
+                listening={false}
+              />
               {/* Vértices intermediários fixados */}
               {draggingWire.waypoints.map((wp, idx) => (
                 <Circle
@@ -323,9 +364,16 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               <Circle
                 x={draggingWire.currentPoint.x}
                 y={draggingWire.currentPoint.y}
-                radius={6}
+                radius={7}
+                fill="#09090b"
+                listening={false}
+              />
+              <Circle
+                x={draggingWire.currentPoint.x}
+                y={draggingWire.currentPoint.y}
+                radius={5}
                 fill="#00e599"
-                stroke="#09090b"
+                stroke="#ffffff"
                 strokeWidth={1.5}
                 listening={false}
               />

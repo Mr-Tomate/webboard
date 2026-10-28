@@ -1,6 +1,13 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { PrismaClient } from '@prisma/client';
-import type { CircuitDefinition, SubmissionSnapshot, EvaluationResult } from '@webboard/contracts';
+import type {
+  CircuitDefinition,
+  SubmissionSnapshot,
+  EvaluationResult,
+  ChallengeDefinition,
+} from '@webboard/contracts';
+import { AutoGrader } from '@webboard/core';
+import type { TelemetryRoomManager } from '../telemetry/room-manager.js';
 
 interface CreateWorkspaceBody {
   name: string;
@@ -33,11 +40,17 @@ interface CreateSubmissionBody {
   evaluation?: EvaluationResult;
 }
 
-export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = async (
+export interface WorkspaceRoutesOptions {
+  prisma: PrismaClient;
+  roomManager?: TelemetryRoomManager;
+}
+
+export const workspaceRoutes: FastifyPluginAsync<WorkspaceRoutesOptions> = async (
   app,
   opts
 ) => {
   const prisma = opts.prisma;
+  const roomManager = opts.roomManager;
 
   // 1. Criar novo Workspace (Solo ou Grupo)
   app.post<{ Body: CreateWorkspaceBody }>('/api/workspaces', async (req, reply) => {
@@ -266,7 +279,6 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
         return reply.status(409).send({ error: 'Usuário já é membro deste workspace.' });
       }
 
-      // Se for Solo e adicionar mais um membro, converte automaticamente para GROUP
       if (workspace.type === 'SOLO') {
         await prisma.workspace.update({
           where: { id },
@@ -294,7 +306,7 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
     }
   );
 
-  // 7. Criar Snapshot de Submissão de Desafio
+  // 7. Criar Snapshot de Submissão de Desafio (com AutoGrader automático)
   app.post<{ Params: { id: string }; Body: CreateSubmissionBody }>(
     '/api/workspaces/:id/submissions',
     async (req, reply) => {
@@ -309,7 +321,52 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
         evaluation,
       } = req.body;
 
-      // Calcular o próximo número sequencial de versão da submissão
+      // Buscar o desafio se cadastrado no banco para execução do AutoGrader
+      const challengeRecord = await prisma.challenge.findUnique({
+        where: { id: challengeId },
+      });
+
+      let finalEvaluation: EvaluationResult = evaluation ?? {
+        status: status as any,
+        totalExecutionVirtualSeconds: 0,
+        summary: { totalTests: 1, passedTests: 1, failedTests: 0 },
+        testResults: [],
+      };
+
+      if (challengeRecord && challengeRecord.testSuiteJson) {
+        try {
+          const testSuite = JSON.parse(challengeRecord.testSuiteJson);
+          if (Array.isArray(testSuite) && testSuite.length > 0) {
+            const challengeDef: ChallengeDefinition = {
+              schemaVersion: '1.0.0',
+              challengeId: challengeRecord.id,
+              title: challengeRecord.title,
+              difficulty: challengeRecord.difficulty as any,
+              allowedLanguages: ['CPP', 'PYTHON'],
+              kitPolicy: JSON.parse(challengeRecord.kitPolicyJson || '{"mode":"OPEN"}'),
+              initialCircuit: challengeRecord.initialCktJson
+                ? JSON.parse(challengeRecord.initialCktJson)
+                : { components: [], wires: [] },
+              testSuite,
+            };
+
+            finalEvaluation = AutoGrader.evaluate(
+              challengeDef,
+              {
+                circuit,
+                code: { language, sourceText: codeText },
+              },
+              { dtVirtualSeconds: 0.05 }
+            );
+          }
+        } catch (err) {
+          // Mantém evaluation de fallback se falhar parsing
+        }
+      }
+
+      const finalStatus = finalEvaluation.status;
+
+      // Próximo número de versão sequencial
       const lastSub = await prisma.submission.findFirst({
         where: { workspaceId: id, challengeId },
         orderBy: { versionNumber: 'desc' },
@@ -317,10 +374,14 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
 
       const nextVersion = (lastSub?.versionNumber ?? 0) + 1;
 
-      // Buscar todos os colaboradores do workspace para registrar no snapshot
+      // Colaboradores do workspace
       const workspace = await prisma.workspace.findUnique({
         where: { id },
-        include: { members: true },
+        include: {
+          members: {
+            include: { user: true },
+          },
+        },
       });
 
       const collaboratorUserIds =
@@ -332,19 +393,46 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
           challengeId,
           userId,
           versionNumber: nextVersion,
-          status,
+          status: finalStatus,
           circuitJson: JSON.stringify(circuit),
           codeText,
-          evaluationJson: JSON.stringify(
-            evaluation ?? {
-              status,
-              totalExecutionVirtualSeconds: 0,
-              summary: { totalTests: 1, passedTests: 1, failedTests: 0 },
-              testResults: [],
-            }
-          ),
+          evaluationJson: JSON.stringify(finalEvaluation),
         },
       });
+
+      // Se roomManager estiver configurado, emitir pulso atualizado na telemetria
+      if (roomManager && workspace) {
+        const teamName = workspace.name;
+        const students = workspace.members.map((m) => m.user?.name || m.userId);
+
+        roomManager.processPulse({
+          workspaceId: id,
+          classroomId: workspace.classroomId ?? 'default_classroom',
+          teamName,
+          students,
+          status:
+            finalStatus === 'APPROVED'
+              ? 'NORMAL'
+              : finalStatus === 'REJECTED_CIRCUIT'
+              ? 'FALHA_CRÍTICA'
+              : 'DIFICULDADE',
+          lastActivitySecondsAgo: 0,
+          currentChallengeTitle: challengeRecord?.title || 'Desafio Webboard',
+          circuitMetrics: {
+            componentCount: circuit.components.length,
+            wireCount: circuit.wires.length,
+            hasShortCircuit: finalStatus === 'REJECTED_CIRCUIT',
+            hasThermalDestruction: false,
+          },
+          codeLanguage: language,
+          compilationAttempts: 1,
+          testSummary: {
+            passed: finalEvaluation.summary.passedTests,
+            total: finalEvaluation.summary.totalTests,
+          },
+          pedagogicalNotes: [],
+        });
+      }
 
       const snapshot: SubmissionSnapshot = {
         schemaVersion: '1.0.0',
@@ -364,14 +452,14 @@ export const workspaceRoutes: FastifyPluginAsync<{ prisma: PrismaClient }> = asy
           },
           circuit,
         },
-        evaluation: JSON.parse(submission.evaluationJson),
+        evaluation: finalEvaluation,
       };
 
       return reply.status(201).send(snapshot);
     }
   );
 
-  // 8. Listar Histórico de Submissões de um Workspace
+  // 8. Listar Histórico de Submissões
   app.get<{ Params: { id: string }; Querystring: { challengeId?: string } }>(
     '/api/workspaces/:id/submissions',
     async (req) => {

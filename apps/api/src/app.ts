@@ -5,6 +5,7 @@ import type { PrismaClient } from '@prisma/client';
 import { healthRoutes } from './routes/health.js';
 import { workspaceRoutes } from './routes/workspaces.js';
 import { telemetryRoutes } from './routes/telemetry.js';
+import { challengeRoutes } from './routes/challenges.js';
 import { TelemetryRoomManager } from './telemetry/room-manager.js';
 
 export interface AppOptions {
@@ -34,7 +35,8 @@ export async function buildApp(
   await app.register(websocket);
 
   await app.register(healthRoutes);
-  await app.register(workspaceRoutes, { prisma });
+  await app.register(workspaceRoutes, { prisma, roomManager });
+  await app.register(challengeRoutes, { prisma });
   await app.register(telemetryRoutes, { roomManager });
 
   return app;
