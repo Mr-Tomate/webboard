@@ -75,6 +75,14 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
       x={component.position.x}
       y={component.position.y}
       draggable={canDrag}
+      onMouseEnter={(e) => {
+        const stage = e.target.getStage();
+        if (stage) stage.container().style.cursor = canDrag ? 'move' : 'pointer';
+      }}
+      onMouseLeave={(e) => {
+        const stage = e.target.getStage();
+        if (stage) stage.container().style.cursor = 'grab';
+      }}
       onClick={(e) => {
         e.cancelBubble = true;
         onSelect(component.id);

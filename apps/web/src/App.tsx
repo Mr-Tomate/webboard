@@ -60,6 +60,7 @@ export function App() {
     zoomIn,
     zoomOut,
     resetView,
+    fitToComponents,
     toWorld
   } = viewportHook;
 
@@ -412,6 +413,15 @@ export function App() {
     });
   };
 
+  // Enquadra perfeitamente o circuito existente na tela ou restaura 100%
+  const handleResetOrFitZoom = useCallback(() => {
+    if (components.length > 0) {
+      fitToComponents(components.map((c) => c.position));
+    } else {
+      resetView();
+    }
+  }, [components, fitToComponents, resetView]);
+
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#121214]">
       {/* Barra de Ferramentas Superior */}
@@ -441,7 +451,7 @@ export function App() {
         onSubmitChallenge={handleSubmitChallenge}
         onZoomIn={zoomIn}
         onZoomOut={zoomOut}
-        onResetZoom={resetView}
+        onResetZoom={handleResetOrFitZoom}
         onDeleteSelected={handleDeleteSelected}
         onClearWorkbench={clearWorkbench}
       />

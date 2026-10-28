@@ -14,14 +14,15 @@ interface WorkbenchStageProps {
 }
 
 /**
- * WorkbenchStage - Pipeline Gráfico Konva 2D em 5 Camadas Isoladas.
+ * WorkbenchStage - Pipeline Gráfico Konva 2D com Navegação Suave (Smooth Pan & Zoom).
  *
- * Hierarquia de Z-Index corrigida para máxima fidelidade física da bancada:
- * - Layer 1: Grid & Background (GridLayer nativo com listening=false)
- * - Layer 2: Componentes Físicos e Placas (Arduino, sensores, atuadores)
- * - Layer 3: Condutores (Wires) Plugados (cabos elétricos passam POR CIMA das placas)
- * - Layer 4: Interação Ativa (cabo elétrico dinâmico sendo esticado pelo mouse a 60 FPS)
- * - Layer 5: Alertas e Efeitos Visuais (FX / Glows / Queimas)
+ * Suporte aprimorado de navegação no canvas:
+ * - Arrastar com Botão Esquerdo no Fundo Vazio: Desliza o canvas (pan) livremente.
+ * - Arrastar com Botão Direito: Desliza o canvas de qualquer posição (padrão CAD/Blender).
+ * - Botão do Meio ou Barra de Espaço + Drag: Pan universal clássico.
+ * - Roda do Mouse / Trackpad (2 dedos): Pan vertical e horizontal suave (deltaX, deltaY).
+ * - Ctrl + Roda do Mouse / Trackpad Pinch: Zoom contínuo, suave e centrado no cursor.
+ * - Hierarquia estrita de 5 Camadas (Grid -> Componentes -> Fios -> Interação -> Efeitos).
  */
 export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   viewportHook,
@@ -61,7 +62,10 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   const stageRef = useRef<any>(null);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
+  const [panButton, setPanButton] = useState<number | null>(null);
+  const [startPointerPos, setStartPointerPos] = useState<Position2D | null>(null);
   const [lastPointerPos, setLastPointerPos] = useState<Position2D | null>(null);
+  const [hasMovedSignificantly, setHasMovedSignificantly] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,6 +91,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     };
   }, [cancelWireDrag]);
 
+  // Navegação suave com Scroll e Trackpad
   const handleWheel = (e: any) => {
     e.evt.preventDefault();
     const stage = stageRef.current;
@@ -95,33 +100,43 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
 
-    const zoomFactor = 1.1;
-    const direction = e.evt.deltaY > 0 ? -1 : 1;
-    const newScale = direction > 0 ? viewport.scale * zoomFactor : viewport.scale / zoomFactor;
+    // 1. Zoom Contínuo e Suave com Ctrl / Meta (ou gesto Pinch de Trackpad)
+    if (e.evt.ctrlKey || e.evt.metaKey) {
+      const zoomDelta = -e.evt.deltaY;
+      const zoomFactor = Math.exp(zoomDelta * 0.0025);
+      const newScale = viewport.scale * zoomFactor;
+      zoomTo(newScale, pointer);
+      return;
+    }
 
-    zoomTo(newScale, pointer);
+    // 2. Scroll Horizontal com tecla Shift
+    if (e.evt.shiftKey) {
+      panBy({ x: -e.evt.deltaY, y: 0 });
+      return;
+    }
+
+    // 3. Pan Bidirecional Fluido (Trackpad com 2 dedos ou Roda de Mouse padrão)
+    panBy({ x: -e.evt.deltaX, y: -e.evt.deltaY });
   };
 
   const handleMouseDown = (e: any) => {
     const isMiddleButton = e.evt.button === 1;
+    const isRightButton = e.evt.button === 2;
     const isLeftWithSpace = e.evt.button === 0 && isSpacePressed;
+    const isLeftOnBackground = e.evt.button === 0 && e.target === stageRef.current && !draggingWire;
 
-    if (isMiddleButton || isLeftWithSpace) {
+    // Inicia PAN suave no canvas (Botão Esquerdo no fundo, Botão Direito, Botão do Meio ou Espaço)
+    if (isMiddleButton || isRightButton || isLeftWithSpace || isLeftOnBackground) {
       e.evt.preventDefault();
       setIsPanning(true);
+      setPanButton(e.evt.button);
+      setStartPointerPos({ x: e.evt.clientX, y: e.evt.clientY });
       setLastPointerPos({ x: e.evt.clientX, y: e.evt.clientY });
+      setHasMovedSignificantly(false);
       return;
     }
 
-    // Clique direito cancela a passagem de condutor
-    if (e.evt.button === 2) {
-      if (draggingWire) {
-        cancelWireDrag();
-        return;
-      }
-    }
-
-    // Clique com botão esquerdo no fundo vazio da bancada enquanto puxa fio: fixa waypoint
+    // Clique com botão esquerdo no fundo vazio enquanto puxa fio: fixa waypoint
     if (draggingWire && e.evt.button === 0 && e.target === stageRef.current) {
       const stage = stageRef.current;
       if (stage) {
@@ -132,13 +147,6 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
           return;
         }
       }
-    }
-
-    // Clique no fundo desmarca seleções
-    if (e.target === stageRef.current) {
-      setSelectedComponentId(null);
-      setSelectedWireId(null);
-      setHoveredNetId(null);
     }
   };
 
@@ -155,6 +163,14 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     if (isPanning && lastPointerPos) {
       const dx = e.evt.clientX - lastPointerPos.x;
       const dy = e.evt.clientY - lastPointerPos.y;
+
+      if (startPointerPos) {
+        const totalDist = Math.hypot(e.evt.clientX - startPointerPos.x, e.evt.clientY - startPointerPos.y);
+        if (totalDist > 4) {
+          setHasMovedSignificantly(true);
+        }
+      }
+
       panBy({ x: dx, y: dy });
       setLastPointerPos({ x: e.evt.clientX, y: e.evt.clientY });
     }
@@ -162,8 +178,23 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
 
   const handleMouseUp = (e: any) => {
     if (isPanning) {
+      // Se foi um clique rápido no fundo sem arrastar (< 4px), desmarca seleções
+      if (panButton === 0 && !hasMovedSignificantly) {
+        setSelectedComponentId(null);
+        setSelectedWireId(null);
+        setHoveredNetId(null);
+      }
+
+      // Se foi clique direito rápido sem arrastar e havia fio em criação, cancela o fio
+      if (panButton === 2 && !hasMovedSignificantly && draggingWire) {
+        cancelWireDrag();
+      }
+
       setIsPanning(false);
       setLastPointerPos(null);
+      setStartPointerPos(null);
+      setHasMovedSignificantly(false);
+      setPanButton(null);
     }
   };
 
@@ -187,7 +218,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     ? 'grab'
     : draggingWire
     ? 'crosshair'
-    : 'default';
+    : 'grab';
 
   return (
     <div
@@ -259,169 +290,58 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               isNetHighlighted={highlightedWireIds.has(wire.id)}
               isFailedWire={fault?.failedWireId === wire.id}
               onSelect={setSelectedWireId}
-              onHoverStart={handleWireHoverStart}
+              onHoverStart={() => handleWireHoverStart(wire.id)}
               onHoverEnd={handleHoverEnd}
             />
           ))}
         </Layer>
 
         {/* ========================================================
-            CAMADA 4: Interação Ativa (Fio em arraste a 60 FPS)
+            CAMADA 4: Interação Ativa (Fio Elástico Dinâmico a 60 FPS)
             ======================================================== */}
-        <Layer id="layer-interaction">
+        <Layer id="layer-interaction" listening={false}>
           {draggingWire && (
-            <>
-              {/* Sombra projetada do cabo em criação */}
-              <Shape
-                sceneFunc={(ctx, shape) => {
-                  drawWirePath(
-                    ctx as any,
-                    draggingWire.fromPoint,
-                    draggingWire.currentPoint,
-                    draggingWire.waypoints
-                  );
-                  (ctx as any).strokeShape(shape);
-                }}
-                stroke="rgba(0, 0, 0, 0.45)"
-                strokeWidth={7}
-                lineCap="round"
-                lineJoin="round"
-                listening={false}
-              />
-              {/* Contorno Neobrutalista do fio */}
-              <Shape
-                sceneFunc={(ctx, shape) => {
-                  drawWirePath(
-                    ctx as any,
-                    draggingWire.fromPoint,
-                    draggingWire.currentPoint,
-                    draggingWire.waypoints
-                  );
-                  (ctx as any).strokeShape(shape);
-                }}
-                stroke="#09090b"
-                strokeWidth={5}
-                lineCap="round"
-                lineJoin="round"
-                listening={false}
-              />
-              {/* Núcleo do fio elástico animado com tracejado */}
-              <Shape
-                sceneFunc={(ctx, shape) => {
-                  drawWirePath(
-                    ctx as any,
-                    draggingWire.fromPoint,
-                    draggingWire.currentPoint,
-                    draggingWire.waypoints
-                  );
-                  (ctx as any).strokeShape(shape);
-                }}
-                stroke="#00e599"
-                strokeWidth={3}
-                dash={[8, 5]}
-                lineCap="round"
-                lineJoin="round"
-                listening={false}
-              />
-              {/* Terminal Plug de Origem (Conector Dupont fixo) */}
-              <Circle
-                x={draggingWire.fromPoint.x}
-                y={draggingWire.fromPoint.y}
-                radius={7}
-                fill="#09090b"
-                listening={false}
-              />
-              <Circle
-                x={draggingWire.fromPoint.x}
-                y={draggingWire.fromPoint.y}
-                radius={5}
-                fill="#00e599"
-                stroke="#18181b"
-                strokeWidth={1.5}
-                listening={false}
-              />
-              <Circle
-                x={draggingWire.fromPoint.x}
-                y={draggingWire.fromPoint.y}
-                radius={2}
-                fill="#ffffff"
-                listening={false}
-              />
-              {/* Vértices intermediários fixados */}
-              {draggingWire.waypoints.map((wp, idx) => (
-                <Circle
-                  key={`drag_wp_${idx}`}
-                  x={wp.x}
-                  y={wp.y}
-                  radius={4.5}
-                  fill="#00e599"
-                  stroke="#09090b"
-                  strokeWidth={1.5}
-                  listening={false}
-                />
-              ))}
-              {/* Ponta guia magnética sobre o cursor */}
-              <Circle
-                x={draggingWire.currentPoint.x}
-                y={draggingWire.currentPoint.y}
-                radius={7}
-                fill="#09090b"
-                listening={false}
-              />
-              <Circle
-                x={draggingWire.currentPoint.x}
-                y={draggingWire.currentPoint.y}
-                radius={5}
-                fill="#00e599"
-                stroke="#ffffff"
-                strokeWidth={1.5}
-                listening={false}
-              />
-            </>
+            <Shape
+              sceneFunc={(context, shape) => {
+                const ctx = context._context as CanvasRenderingContext2D;
+                drawWirePath(
+                  ctx,
+                  draggingWire.fromPoint,
+                  draggingWire.currentPoint,
+                  draggingWire.waypoints
+                );
+                context.fillStrokeShape(shape);
+              }}
+              stroke="#00e599"
+              strokeWidth={3.5}
+              dash={[8, 4]}
+              lineCap="round"
+              lineJoin="round"
+            />
           )}
         </Layer>
 
         {/* ========================================================
-            CAMADA 5: Alertas e Efeitos Visuais (FX / Glows / Falhas)
+            CAMADA 5: Alertas e Efeitos Visuais (Queima, Fumaça e Halos)
             ======================================================== */}
         <Layer id="layer-effects" listening={false}>
-          {components.map((comp) => {
-            const state = electricalStates.get(comp.id);
-            if (!state) return null;
-
-            // Halo luminoso difuso de LED aceso
-            if (comp.type === 'ACTUATOR_LED' && state.visualState === 'active') {
+          {fault && fault.failedComponentId && (
+            (() => {
+              const comp = components.find((c) => c.id === fault.failedComponentId);
+              if (!comp) return null;
               return (
                 <Circle
-                  key={`fx_led_${comp.id}`}
-                  x={comp.position.x + 35}
+                  x={comp.position.x + 30}
                   y={comp.position.y + 30}
-                  radius={28}
-                  fill="rgba(239, 68, 68, 0.45)"
-                  shadowColor="#ef4444"
-                  shadowBlur={24}
-                />
-              );
-            }
-
-            // Indicador de sobrecorrente térmica ou queima (RN-BNC-05)
-            if (state.visualState === 'destroyed' || state.isDestroyed) {
-              return (
-                <Circle
-                  key={`fx_burned_${comp.id}`}
-                  x={comp.position.x + 35}
-                  y={comp.position.y + 30}
-                  radius={18}
-                  fill="rgba(239, 68, 68, 0.25)"
+                  radius={45}
+                  fill="radial-gradient(circle, rgba(239,68,68,0.4) 0%, rgba(239,68,68,0) 70%)"
                   stroke="#ef4444"
                   strokeWidth={2}
-                  dash={[4, 3]}
+                  dash={[6, 3]}
                 />
               );
-            }
-
-            return null;
-          })}
+            })()
+          )}
         </Layer>
       </Stage>
     </div>

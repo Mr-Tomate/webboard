@@ -82,9 +82,52 @@ export function useViewport(initialScale = 1.0, initialOffset: Position2D = { x:
   const resetView = useCallback(() => {
     setViewport({
       scale: 1.0,
-      offset: { x: 0, y: 0 }
+      offset: { x: 50, y: 50 }
     });
   }, []);
+
+  const fitToComponents = useCallback(
+    (componentPositions: Position2D[], padding = 120) => {
+      if (componentPositions.length === 0) {
+        setViewport({ scale: 1.0, offset: { x: 50, y: 50 } });
+        return;
+      }
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      for (const p of componentPositions) {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x + 140);
+        maxY = Math.max(maxY, p.y + 140);
+      }
+
+      const contentWidth = Math.max(maxX - minX, 100);
+      const contentHeight = Math.max(maxY - minY, 100);
+
+      const availableWidth = dimensions.width - padding * 2;
+      const availableHeight = dimensions.height - padding * 2;
+
+      const scaleX = availableWidth / contentWidth;
+      const scaleY = availableHeight / contentHeight;
+      const rawScale = Math.min(scaleX, scaleY, 1.1);
+      const scale = clampZoom(rawScale);
+
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+
+      const offset = {
+        x: dimensions.width / 2 - centerX * scale,
+        y: dimensions.height / 2 - centerY * scale
+      };
+
+      setViewport({ scale, offset });
+    },
+    [dimensions]
+  );
 
   const toWorld = useCallback((screenPos: Position2D) => {
     return screenToWorld(screenPos, viewport.offset, viewport.scale);
@@ -103,6 +146,7 @@ export function useViewport(initialScale = 1.0, initialOffset: Position2D = { x:
     zoomIn,
     zoomOut,
     resetView,
+    fitToComponents,
     toWorld,
     toScreen
   };
