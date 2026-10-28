@@ -14,6 +14,7 @@ export interface PedagogicalNote {
 
 export interface StudentWorkspacePulse {
   workspaceId: string;
+  classroomId?: string;
   teamName: string;
   students: string[];
   status: StudentWorkspaceStatus;
@@ -45,3 +46,67 @@ export interface ClassroomTelemetrySummary {
   };
   averageProgressPercent: number;
 }
+
+export type WebSocketRole = 'student' | 'teacher';
+
+export type ClientToServerMessage =
+  | { type: 'PULSE'; payload: StudentWorkspacePulse }
+  | {
+      type: 'FAULT_ALERT';
+      payload: {
+        workspaceId: string;
+        faultType: 'SHORT_CIRCUIT' | 'OVERCURRENT';
+        message: string;
+        failedWireId?: string;
+        failedComponentId?: string;
+      };
+    }
+  | {
+      type: 'SEND_NOTE';
+      payload: {
+        workspaceId: string;
+        author: string;
+        text: string;
+        targetComponentId?: string;
+      };
+    };
+
+export type ServerToClientMessage =
+  | {
+      type: 'CLASSROOM_SNAPSHOT';
+      payload: {
+        classroomId: string;
+        workspaces: StudentWorkspacePulse[];
+        summary: ClassroomTelemetrySummary;
+      };
+    }
+  | {
+      type: 'WORKSPACE_PULSE_UPDATED';
+      payload: {
+        classroomId: string;
+        pulse: StudentWorkspacePulse;
+        summary: ClassroomTelemetrySummary;
+      };
+    }
+  | {
+      type: 'WORKSPACE_FAULT_ALERT';
+      payload: {
+        classroomId: string;
+        workspaceId: string;
+        teamName: string;
+        faultType: 'SHORT_CIRCUIT' | 'OVERCURRENT';
+        message: string;
+        timestamp: string;
+      };
+    }
+  | {
+      type: 'PEDAGOGICAL_NOTE_RECEIVED';
+      payload: {
+        workspaceId: string;
+        note: PedagogicalNote;
+      };
+    }
+  | {
+      type: 'ERROR';
+      message: string;
+    };

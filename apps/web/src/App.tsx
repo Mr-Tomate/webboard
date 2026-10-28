@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import type { WireColor, CircuitDefinition, EvaluationResult } from '@webboard/contracts';
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
+import { useTelemetrySocket } from './hooks/useTelemetrySocket.js';
 import { WorkbenchStage } from './components/canvas/WorkbenchStage.js';
 import { Toolbar, type ActiveAppView } from './components/ui/Toolbar.js';
 import { CatalogSidebar } from './components/ui/CatalogSidebar.js';
@@ -24,9 +25,10 @@ import {
 } from './types/telemetry.js';
 import {
   SAMPLE_CLASSROOM_WORKSPACES,
-  addPedagogicalNote
+  determineWorkspaceStatus
 } from './utils/telemetry.js';
 import { AVRBoard } from './emulator/avr-board.js';
+import { MessageSquare, X } from 'lucide-react';
 
 export function App() {
   const viewportHook = useViewport(1.0, { x: 50, y: 50 });
@@ -64,9 +66,6 @@ export function App() {
   // Alternância de Visão (Bancada do Aluno vs Painel Panóptico do Professor)
   const [currentView, setCurrentView] = useState<ActiveAppView>('STUDENT_BENCH');
   const [isMirrorMode, setIsMirrorMode] = useState(false);
-  const [classroomWorkspaces, setClassroomWorkspaces] = useState<StudentWorkspacePulse[]>(
-    SAMPLE_CLASSROOM_WORKSPACES
-  );
 
   // Instância do Emulador AVR8js
   const avrBoardRef = useRef<AVRBoard | null>(null);
@@ -82,23 +81,108 @@ export function App() {
   const [language, setLanguage] = useState<SupportedLanguage>('CPP');
   const [cppCode, setCppCode] = useState(DEFAULT_CPP_CODE);
   const [pythonCode, setPythonCode] = useState(DEFAULT_PYTHON_CODE);
+  const [compilationAttempts, setCompilationAttempts] = useState(0);
   const [serialMessages, setSerialMessages] = useState<SerialMessage[]>([
     createSerialMessage('Webboard Terminal Serial pronto. Conecte o código à bancada.', 'SYSTEM')
   ]);
   const [baudRate, setBaudRate] = useState<BaudRate>(9600);
 
-  // Se a bancada entrar em ESTADO_FALHA_ENG, para a CPU virtual imediatamente
+  // Conexão WebSocket de Telemetria (Aluno ou Professor)
+  const socketRole = currentView === 'TEACHER_DASHBOARD' ? 'teacher' : 'student';
+  const {
+    isConnected: isWsConnected,
+    workspaces: telemetryWorkspaces,
+    latestFaultAlert,
+    incomingNotes,
+    dismissNote,
+    sendPulse,
+    sendFaultAlert,
+    sendPedagogicalNote
+  } = useTelemetrySocket(
+    {
+      role: socketRole,
+      classroomId: 'turma_8b',
+      workspaceId: 'ws_aluno_01'
+    },
+    SAMPLE_CLASSROOM_WORKSPACES
+  );
+
+  // Pulso periódico e reativo de telemetria da bancada do aluno
   useEffect(() => {
-    if (mode === 'ESTADO_FALHA_ENG' && avrBoardRef.current) {
-      avrBoardRef.current.stop();
+    if (currentView !== 'STUDENT_BENCH' || isMirrorMode) return;
+
+    const hasShortCircuit = fault?.type === 'SHORT_CIRCUIT';
+    const hasThermalDestruction = fault?.type === 'OVERCURRENT';
+
+    const status = determineWorkspaceStatus({
+      hasShortCircuit,
+      hasThermalDestruction,
+      lastActivitySecondsAgo: 0,
+      compilationAttempts,
+      testsPassed: evaluationResult?.status === 'APPROVED' ? 2 : 0,
+      testsTotal: 2
+    });
+
+    const pulsePayload: StudentWorkspacePulse = {
+      workspaceId: 'ws_aluno_01',
+      classroomId: 'turma_8b',
+      teamName: 'Bancada 01 (Principal)',
+      students: ['Aluno Webboard'],
+      status,
+      lastActivitySecondsAgo: 0,
+      currentChallengeTitle: 'Desafio 01: Circuito de Sinalização com LED',
+      circuitMetrics: {
+        componentCount: components.length,
+        wireCount: wires.length,
+        hasShortCircuit,
+        hasThermalDestruction
+      },
+      codeLanguage: language,
+      compilationAttempts,
+      testSummary: {
+        passed: evaluationResult?.status === 'APPROVED' ? 2 : 0,
+        total: 2
+      },
+      pedagogicalNotes: incomingNotes
+    };
+
+    sendPulse(pulsePayload);
+  }, [
+    components.length,
+    wires.length,
+    fault,
+    language,
+    compilationAttempts,
+    evaluationResult,
+    currentView,
+    isMirrorMode,
+    sendPulse,
+    incomingNotes
+  ]);
+
+  // Se a bancada entrar em ESTADO_FALHA_ENG, dispara alerta crítico para o professor via WebSocket
+  useEffect(() => {
+    if (mode === 'ESTADO_FALHA_ENG' && fault) {
+      if (avrBoardRef.current) {
+        avrBoardRef.current.stop();
+      }
       setSerialMessages((prev) =>
         appendToSerialBuffer(
           prev,
-          createSerialMessage(`[HALT] ${fault?.message || 'Falha crítica: Emulação congelada.'}`, 'ERROR')
+          createSerialMessage(`[HALT] ${fault.message}`, 'ERROR')
         )
       );
+
+      // Emite alerta em tempo real para a sala de aula
+      sendFaultAlert({
+        workspaceId: 'ws_aluno_01',
+        faultType: fault.type === 'SHORT_CIRCUIT' ? 'SHORT_CIRCUIT' : 'OVERCURRENT',
+        message: fault.message,
+        failedWireId: fault.failedWireId,
+        failedComponentId: fault.failedComponentId
+      });
     }
-  }, [mode, fault]);
+  }, [mode, fault, sendFaultAlert]);
 
   // Teclas de atalho globais (Delete, Esc)
   useEffect(() => {
@@ -158,6 +242,9 @@ export function App() {
 
   const handleStartSimulation = useCallback(() => {
     if (isMirrorMode) return;
+
+    setCompilationAttempts((prev) => prev + 1);
+
     const ok = startSimulation();
     if (!ok) return;
 
@@ -290,7 +377,7 @@ export function App() {
       setSerialMessages((prev) =>
         appendToSerialBuffer(
           prev,
-          createSerialMessage(`[SUBMISSÃO] Snapshot v1 registrado. Status: ${evalResult.status}`, 'SYSTEM')
+          createSerialMessage(`[SUBMISSÃO] Snapshot registrado com sucesso. Status: ${evalResult.status}`, 'SYSTEM')
         )
       );
     } catch {
@@ -317,13 +404,12 @@ export function App() {
   };
 
   const handleAddPedagogicalNote = (workspaceId: string, text: string, targetComponentId?: string) => {
-    setClassroomWorkspaces((prev) =>
-      prev.map((ws) =>
-        ws.workspaceId === workspaceId
-          ? addPedagogicalNote(ws, 'Prof. Titular', text, targetComponentId)
-          : ws
-      )
-    );
+    sendPedagogicalNote({
+      workspaceId,
+      author: 'Prof. Titular',
+      text,
+      targetComponentId
+    });
   };
 
   return (
@@ -363,6 +449,32 @@ export function App() {
       {/* Visão 1: Bancada do Aluno / Espelho */}
       {currentView === 'STUDENT_BENCH' ? (
         <>
+          {/* Banner de Novas Orientações Pedagógicas Recebidas do Docente */}
+          {incomingNotes.length > 0 && !isMirrorMode && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 animate-in slide-in-from-top-4">
+              <div className="p-3.5 rounded-xl bg-amber-950/90 border-2 border-amber-500/80 shadow-2xl text-amber-200 flex items-start justify-between gap-3 backdrop-blur-md">
+                <div className="flex items-start gap-2.5">
+                  <MessageSquare className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-bold text-xs uppercase tracking-wider text-amber-400">
+                      Orientação do Professor ({incomingNotes[0].author}):
+                    </h5>
+                    <p className="text-xs text-amber-100 font-medium mt-0.5">
+                      "{incomingNotes[0].text}"
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => dismissNote(incomingNotes[0].id)}
+                  className="p-1 rounded hover:bg-amber-900 text-amber-400 transition cursor-pointer"
+                  title="Dispensar orientação"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Catálogo Lateral de Componentes */}
           {!isMirrorMode && (
             <CatalogSidebar
@@ -416,7 +528,9 @@ export function App() {
         /* Visão 2: Painel Panóptico do Professor */
         <div className="pt-20 w-full h-full">
           <PanopticDashboard
-            workspaces={classroomWorkspaces}
+            workspaces={telemetryWorkspaces}
+            isConnected={isWsConnected}
+            latestFaultAlert={latestFaultAlert}
             onMirrorWorkspace={handleMirrorWorkspace}
             onAddNote={handleAddPedagogicalNote}
           />

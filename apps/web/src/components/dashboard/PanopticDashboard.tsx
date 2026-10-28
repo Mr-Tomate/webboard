@@ -12,7 +12,10 @@ import {
   Filter,
   Layers,
   FileCode,
-  GraduationCap
+  GraduationCap,
+  Wifi,
+  WifiOff,
+  X
 } from 'lucide-react';
 import type {
   StudentWorkspacePulse,
@@ -23,12 +26,24 @@ import { PedagogicalNoteModal } from './PedagogicalNoteModal.js';
 
 interface PanopticDashboardProps {
   workspaces: StudentWorkspacePulse[];
+  isConnected?: boolean;
+  latestFaultAlert?: {
+    workspaceId: string;
+    teamName: string;
+    faultType: 'SHORT_CIRCUIT' | 'OVERCURRENT';
+    message: string;
+    timestamp: string;
+  } | null;
+  onDismissFaultAlert?: () => void;
   onMirrorWorkspace: (workspace: StudentWorkspacePulse) => void;
   onAddNote: (workspaceId: string, text: string, targetComponentId?: string) => void;
 }
 
 export const PanopticDashboard: React.FC<PanopticDashboardProps> = ({
   workspaces,
+  isConnected = false,
+  latestFaultAlert = null,
+  onDismissFaultAlert,
   onMirrorWorkspace,
   onAddNote
 }) => {
@@ -92,12 +107,20 @@ export const PanopticDashboard: React.FC<PanopticDashboardProps> = ({
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
                 <span>Painel Panóptico Docente</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-[#1f2025] text-[#00e599] border border-[#00e599]/30 font-mono">
-                  AO VIVO
-                </span>
+                {isConnected ? (
+                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 font-mono">
+                    <Wifi className="w-3 h-3 animate-pulse" />
+                    <span>AO VIVO (WS CONECTADO)</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded bg-amber-950/60 text-amber-400 border border-amber-500/30 font-mono">
+                    <WifiOff className="w-3 h-3" />
+                    <span>OFFLINE (MODO LOCAL)</span>
+                  </span>
+                )}
               </h1>
               <p className="text-xs text-zinc-400">
-                Turma 8B • Robótica & Circuitos Microcontrolados (Telemetria em Tempo Real)
+                Turma 8B • Robótica & Circuitos Microcontrolados (Telemetria Panóptica)
               </p>
             </div>
           </div>
@@ -125,76 +148,70 @@ export const PanopticDashboard: React.FC<PanopticDashboardProps> = ({
               <span className="block text-base font-extrabold text-rose-400">{summary.statusCounts.critical}</span>
               <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Crítico</span>
             </div>
-            <div className="h-6 w-px bg-[#2e2e34]" />
-            <div className="text-center">
-              <span className="block text-base font-extrabold text-[#00e599]">{summary.averageProgressPercent}%</span>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Sucesso</span>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* Status Filters */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-[#1a1a1e] border border-[#2e2e34]">
-          <button
-            onClick={() => setStatusFilter('ALL')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'ALL'
-                ? 'bg-[#27272a] text-white shadow'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Todas ({workspaces.length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('FALHA_CRÍTICA')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'FALHA_CRÍTICA'
-                ? 'bg-rose-950 text-rose-300 border border-rose-500/40 shadow'
-                : 'text-rose-400 hover:bg-rose-950/40'
-            }`}
-          >
-            Falhas Críticas ({summary.statusCounts.critical})
-          </button>
-          <button
-            onClick={() => setStatusFilter('DIFICULDADE')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'DIFICULDADE'
-                ? 'bg-amber-950 text-amber-300 border border-amber-500/40 shadow'
-                : 'text-amber-400 hover:bg-amber-950/40'
-            }`}
-          >
-            Em Dificuldade ({summary.statusCounts.difficulty})
-          </button>
-          <button
-            onClick={() => setStatusFilter('NORMAL')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
-              statusFilter === 'NORMAL'
-                ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40 shadow'
-                : 'text-emerald-400 hover:bg-emerald-950/40'
-            }`}
-          >
-            Em Progresso ({summary.statusCounts.normal})
-          </button>
+      {/* Alerta Realtime de Falha Crítica / Incidente */}
+      {latestFaultAlert && (
+        <div className="p-4 rounded-xl bg-rose-950/80 border-2 border-rose-500/70 text-rose-200 flex items-start justify-between gap-4 animate-bounce">
+          <div className="flex items-start gap-3">
+            <AlertOctagon className="w-6 h-6 text-rose-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                <span>Alerta de Falha Crítica na Bancada:</span>
+                <span className="underline decoration-rose-400">{latestFaultAlert.teamName}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-rose-900 border border-rose-500 font-mono">
+                  {latestFaultAlert.faultType}
+                </span>
+              </h4>
+              <p className="text-xs text-rose-300 mt-1">{latestFaultAlert.message}</p>
+            </div>
+          </div>
+          {onDismissFaultAlert && (
+            <button
+              onClick={onDismissFaultAlert}
+              className="p-1 rounded hover:bg-rose-900 text-rose-300 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
+      )}
 
-        {/* Search input */}
-        <div className="relative min-w-64">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-zinc-500" />
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#18181c] p-3 rounded-xl border border-[#2e2e34]">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
+            placeholder="Buscar por bancada ou aluno..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por equipe ou aluno..."
-            className="w-full bg-[#1a1a1e] border border-[#2e2e34] rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#00e599]"
+            className="w-full bg-[#121214] border border-[#2e2e34] rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#00e599]"
           />
+        </div>
+
+        <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+          <Filter className="w-3.5 h-3.5 text-zinc-400 mr-1" />
+          {(['ALL', 'NORMAL', 'DIFICULDADE', 'FALHA_CRÍTICA', 'INATIVO'] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                statusFilter === status
+                  ? 'bg-[#00e599] text-black'
+                  : 'bg-[#27272a] hover:bg-[#323236] text-zinc-300'
+              }`}
+            >
+              {status === 'ALL' ? 'Todos' : status}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Grid of Student Workspaces */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Grid of Student Bench Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filteredWorkspaces.map((ws) => (
           <div
             key={ws.workspaceId}
