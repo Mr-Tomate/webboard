@@ -116,7 +116,12 @@ export function getPinAbsolutePosition(
 }
 
 /**
- * Gera pontos de controle para uma curva Bézier com caimento natural (sag).
+ * Gera pontos de controle Bézier adaptativos e flexíveis para cabos elétricos.
+ *
+ * Elimina o comportamento anterior de base rígida voltada para baixo:
+ * - O vetor tangente acompanha dinamicamente a direção angular da conexão.
+ * - Caimento gravitacional (sag) proporcional à projeção horizontal.
+ * - Evita o mergulho indesejado (U-turn) que atravessava o corpo dos componentes.
  */
 export function calculateWireBezierControlPoints(
   from: Position2D,
@@ -126,13 +131,40 @@ export function calculateWireBezierControlPoints(
   const dy = to.y - from.y;
   const dist = Math.sqrt(dx * dx + dy * dy);
 
-  // Curvatura com base na distância
-  const sagFactor = Math.min(Math.max(dist * 0.25, 20), 120);
+  if (dist < 1) {
+    return [{ ...from }, { ...to }];
+  }
 
-  return [
-    { x: from.x, y: from.y + sagFactor },
-    { x: to.x, y: to.y + sagFactor }
-  ];
+  // Fator de orientação horizontal (1.0 = puramente horizontal, 0.0 = puramente vertical)
+  const horizontalFactor = Math.abs(dx) / dist;
+  
+  // Caimento natural suave no vão livre do fio (catenária adaptativa)
+  const sag = horizontalFactor * Math.min(dist * 0.22, 45);
+
+  // Ponto de controle de saída (avança na direção do vetor com caimento suave)
+  const cp1: Position2D = {
+    x: from.x + dx * 0.35,
+    y: from.y + dy * 0.35 + sag
+  };
+
+  // Ponto de controle de chegada (recua suavemente a partir do destino)
+  let cp2Y = to.y - dy * 0.35 + sag;
+
+  // Garante que o cabo nunca faça laço ou U-turn invadindo o corpo da placa
+  if (dy > 0 && cp2Y > to.y) {
+    // Fio descendo: deve entrar suavemente por cima do pino
+    cp2Y = to.y - Math.min(dy * 0.2, 20);
+  } else if (dy < 0 && cp2Y < to.y) {
+    // Fio subindo: deve entrar suavemente por baixo do pino
+    cp2Y = to.y + Math.min(Math.abs(dy) * 0.2, 20);
+  }
+
+  const cp2: Position2D = {
+    x: to.x - dx * 0.35,
+    y: cp2Y
+  };
+
+  return [cp1, cp2];
 }
 
 /**
@@ -167,7 +199,7 @@ export function drawWirePath(
   ctx.moveTo(points[0].x, points[0].y);
 
   if (points.length === 2) {
-    // Curva Bézier clássica de condutor elétrico em repouso
+    // Curva Bézier flexível adaptada à geometria da conexão
     const [cp1, cp2] = calculateWireBezierControlPoints(points[0], points[1]);
     ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, points[1].x, points[1].y);
   } else {

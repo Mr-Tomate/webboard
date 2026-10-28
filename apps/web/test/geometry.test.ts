@@ -73,15 +73,23 @@ test('getPinAbsolutePosition: calcula offset com e sem rotação', () => {
   assert.ok(Math.abs(pin90.y - (100 + 10)) < 1e-6);
 });
 
-test('calculateWireBezierControlPoints: gera pontos de curvatura com sag natural', () => {
+test('calculateWireBezierControlPoints: gera pontos adaptativos e flexiveis sem mergulho nos pinos', () => {
+  // Cenário 1: Conexão predominantemente horizontal com caimento gravitacional
   const from = { x: 100, y: 100 };
   const to = { x: 300, y: 100 };
   const [cp1, cp2] = calculateWireBezierControlPoints(from, to);
 
-  assert.equal(cp1.x, 100);
-  assert.equal(cp2.x, 300);
+  // Pontos de controle avançam organicamente na direção da corda
+  assert.ok(cp1.x > from.x && cp1.x < to.x);
+  assert.ok(cp2.x > from.x && cp2.x < to.x);
   assert.ok(cp1.y > 100);
   assert.ok(cp2.y > 100);
+
+  // Cenário 2: Fio descendo em direção à placa (dy > 0), cp2 nunca pode ultrapassar o pino (evita U-turn por baixo)
+  const compTop = { x: 120, y: 50 };
+  const arduinoPin = { x: 150, y: 250 };
+  const [, cp2Down] = calculateWireBezierControlPoints(compTop, arduinoPin);
+  assert.ok(cp2Down.y <= arduinoPin.y, 'O ponto de controle não deve mergulhar além do pino de destino');
 });
 
 test('getWirePathPoints: intercala waypoints ordenadamente entre start e end', () => {
