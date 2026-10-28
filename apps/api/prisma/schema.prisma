@@ -1,0 +1,134 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -------------------------------------------------------------
+// CONTEXTO PEDAGÓGICO & GESTÃO MULTI-TENANT
+// -------------------------------------------------------------
+
+model Tenant {
+  id        String      @id @default(uuid())
+  name      String
+  slug      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  users      User[]
+  classrooms Classroom[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  email     String   @unique
+  role      String   // "ADMIN", "TEACHER", "STUDENT"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  classroomMembers ClassroomMember[]
+  workspaceMembers WorkspaceMember[]
+  submissions      Submission[]
+}
+
+model Classroom {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  code      String   @unique // Código de convite da turma
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant     Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  members    ClassroomMember[]
+  workspaces Workspace[]
+}
+
+model ClassroomMember {
+  id          String   @id @default(uuid())
+  classroomId String
+  userId      String
+  role        String   // "TEACHER" ou "STUDENT"
+  joinedAt    DateTime @default(now())
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classroomId, userId])
+}
+
+// -------------------------------------------------------------
+// WORKSPACES & BANCADAS (SOLO / GRUPO)
+// -------------------------------------------------------------
+
+model Workspace {
+  id          String   @id @default(uuid())
+  classroomId String?  // Opcional para sandbox pessoal independente
+  name        String
+  type        String   // "SOLO" ou "GROUP"
+  circuitJson String   // Representação serializada do circuito atual (CircuitDefinition)
+  codeText    String   // Código-fonte atual
+  language    String   // "CPP" ou "PYTHON"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  classroom   Classroom?        @relation(fields: [classroomId], references: [id], onDelete: SetNull)
+  members     WorkspaceMember[]
+  submissions Submission[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String
+  isOwner     Boolean  @default(false)
+  joinedAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+// -------------------------------------------------------------
+// DESAFIOS & AVALIAÇÃO AUTOMATIZADA
+// -------------------------------------------------------------
+
+model Challenge {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  difficulty    String   // "BEGINNER", "INTERMEDIATE", "ADVANCED"
+  kitPolicyJson String   // BOM restrita (allowedComponents)
+  initialCktJson String? // Circuito seed pré-fixado
+  testSuiteJson String   // Casos de teste públicos e ocultos com estímulos
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  submissions Submission[]
+}
+
+model Submission {
+  id            String   @id @default(uuid())
+  workspaceId   String
+  challengeId   String
+  userId        String   // Aluno que disparou a submissão
+  versionNumber Int      // Snapshot sequencial: 1, 2, 3...
+  status        String   // "APPROVED", "REJECTED_CIRCUIT", "COMPILE_ERROR", "TEST_FAILED"
+  circuitJson   String   // Snapshot imutável da bancada
+  codeText      String   // Snapshot imutável do código
+  evaluationJson String  // Relatório detalhado dos casos de teste
+  submittedAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, challengeId, versionNumber])
+}
