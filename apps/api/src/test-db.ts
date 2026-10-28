@@ -5,11 +5,13 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando teste de conectividade com Prisma (SQLite)...");
 
-  // 1. Criar um Tenant (Escola)
+  const runId = Date.now().toString(36);
+
+  // 1. Criar um Tenant (Escola) com slug dinâmico
   const tenant = await prisma.tenant.create({
     data: {
-      name: "Colégio Tecnológico Exemplo",
-      slug: "colegio-exemplo",
+      name: `Colégio Tecnológico ${runId}`,
+      slug: `colegio-${runId}`,
     },
   });
   console.log("Tenant criado com sucesso:", tenant.id, tenant.name);
@@ -18,8 +20,8 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       tenantId: tenant.id,
-      name: "Aluno Teste",
-      email: "aluno@exemplo.com",
+      name: `Aluno Teste ${runId}`,
+      email: `aluno_${runId}@exemplo.com`,
       role: "STUDENT",
     },
   });

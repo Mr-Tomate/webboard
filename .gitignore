@@ -26,6 +26,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Configurações locais de IDE / Editor
+.zed/
+.vscode/
+.idea/
+
 # Sistema operacional
 .DS_Store
 Thumbs.db

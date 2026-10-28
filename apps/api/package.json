@@ -9,12 +9,13 @@
     "test:db": "node --loader ts-node/esm src/test-db.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.3.1"
+    "@prisma/client": "^6.19.3",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
-    "prisma": "^6.3.1",
+    "@types/node": "^22.13.1",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3",
-    "@types/node": "^22.13.1"
+    "typescript": "^5.7.3"
   }
 }
