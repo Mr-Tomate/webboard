@@ -1,0 +1,41 @@
+{
+  "id": "sensor_ultrasonic",
+  "name": "Sensor Ultrassônico HC-SR04",
+  "category": "SENSOR",
+  "dimensions": {
+    "width": 90,
+    "height": 50
+  },
+  "pins": [
+    {
+      "id": "VCC",
+      "label": "VCC (5V)",
+      "type": "POWER_VCC",
+      "anchorPosition": { "x": 20, "y": 50 }
+    },
+    {
+      "id": "TRIG",
+      "label": "TRIG (Disparo)",
+      "type": "DIGITAL_IO",
+      "anchorPosition": { "x": 35, "y": 50 }
+    },
+    {
+      "id": "ECHO",
+      "label": "ECHO (Retorno)",
+      "type": "DIGITAL_IO",
+      "anchorPosition": { "x": 55, "y": 50 }
+    },
+    {
+      "id": "GND",
+      "label": "GND (0V)",
+      "type": "POWER_GND",
+      "anchorPosition": { "x": 70, "y": 50 }
+    }
+  ],
+  "defaultParameters": {
+    "minDistanceCm": 2.0,
+    "maxDistanceCm": 400.0,
+    "timeoutMicros": 38000
+  },
+  "visualStates": ["default", "active"]
+}

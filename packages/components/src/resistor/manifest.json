@@ -1,0 +1,29 @@
+{
+  "id": "resistor",
+  "name": "Resistor",
+  "category": "PASSIVE",
+  "dimensions": {
+    "width": 80,
+    "height": 30
+  },
+  "pins": [
+    {
+      "id": "PIN_1",
+      "label": "Terminal 1",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 0, "y": 15 }
+    },
+    {
+      "id": "PIN_2",
+      "label": "Terminal 2",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 80, "y": 15 }
+    }
+  ],
+  "defaultParameters": {
+    "resistanceOhms": 220,
+    "tolerancePercent": 5,
+    "powerRatingWatts": 0.25
+  },
+  "visualStates": ["default", "active", "failure"]
+}

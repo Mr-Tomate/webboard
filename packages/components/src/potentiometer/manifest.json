@@ -1,0 +1,34 @@
+{
+  "id": "potentiometer",
+  "name": "Potenciômetro Rotativo 10k",
+  "category": "INPUT",
+  "dimensions": {
+    "width": 60,
+    "height": 80
+  },
+  "pins": [
+    {
+      "id": "TERMINAL_1",
+      "label": "Terminal 1",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 10, "y": 80 }
+    },
+    {
+      "id": "WIPER",
+      "label": "Cursor (Wiper)",
+      "type": "ANALOG_IN",
+      "anchorPosition": { "x": 30, "y": 80 }
+    },
+    {
+      "id": "TERMINAL_2",
+      "label": "Terminal 2",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 50, "y": 80 }
+    }
+  ],
+  "defaultParameters": {
+    "totalResistanceOhms": 10000,
+    "alpha": 0.5
+  },
+  "visualStates": ["default", "active"]
+}

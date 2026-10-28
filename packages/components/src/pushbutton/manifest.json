@@ -1,0 +1,39 @@
+{
+  "id": "pushbutton",
+  "name": "Pushbutton 4 Terminais",
+  "category": "INPUT",
+  "dimensions": {
+    "width": 60,
+    "height": 60
+  },
+  "pins": [
+    {
+      "id": "PIN_1A",
+      "label": "Terminal 1A",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 0, "y": 15 }
+    },
+    {
+      "id": "PIN_1B",
+      "label": "Terminal 1B",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 0, "y": 45 }
+    },
+    {
+      "id": "PIN_2A",
+      "label": "Terminal 2A",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 60, "y": 15 }
+    },
+    {
+      "id": "PIN_2B",
+      "label": "Terminal 2B",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 60, "y": 45 }
+    }
+  ],
+  "defaultParameters": {
+    "isPressed": false
+  },
+  "visualStates": ["default", "active"]
+}

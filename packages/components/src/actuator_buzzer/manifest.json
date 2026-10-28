@@ -1,0 +1,28 @@
+{
+  "id": "actuator_buzzer",
+  "name": "Buzzer Piezoelétrico",
+  "category": "ACTUATOR",
+  "dimensions": {
+    "width": 50,
+    "height": 50
+  },
+  "pins": [
+    {
+      "id": "VCC",
+      "label": "Positivo (+)",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 15, "y": 50 }
+    },
+    {
+      "id": "GND",
+      "label": "GND (-)",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 35, "y": 50 }
+    }
+  ],
+  "defaultParameters": {
+    "isPassive": false,
+    "nominalFrequencyHz": 2500
+  },
+  "visualStates": ["default", "active"]
+}

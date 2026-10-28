@@ -1,0 +1,29 @@
+{
+  "id": "actuator_led",
+  "name": "LED Difuso 5mm",
+  "category": "ACTUATOR",
+  "dimensions": {
+    "width": 40,
+    "height": 60
+  },
+  "pins": [
+    {
+      "id": "ANODE",
+      "label": "Ânodo (+)",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 12, "y": 60 }
+    },
+    {
+      "id": "CATHODE",
+      "label": "Cátodo (-)",
+      "type": "PASSIVE",
+      "anchorPosition": { "x": 28, "y": 60 }
+    }
+  ],
+  "defaultParameters": {
+    "color": "RED",
+    "forwardVoltageVolts": 1.8,
+    "maxCurrentAmperes": 0.03
+  },
+  "visualStates": ["default", "active", "failure"]
+}
