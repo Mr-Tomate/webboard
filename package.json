@@ -8,6 +8,8 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "npm run dev -w @webboard/web",
+    "dev:web": "npm run dev -w @webboard/web",
     "build": "npm run --workspaces --if-present build",
     "test": "npm run --workspaces --if-present test"
   },
