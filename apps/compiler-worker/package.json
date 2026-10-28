@@ -1,0 +1,20 @@
+{
+  "name": "@webboard/compiler-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "node --experimental-strip-types --test test/*.test.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.1",
+    "@webboard/contracts": "*",
+    "fastify": "^5.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.7.3"
+  }
+}
