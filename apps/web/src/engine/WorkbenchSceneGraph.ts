@@ -66,7 +66,7 @@ export class WorkbenchSceneGraph {
         type: 'ACTUATOR_LED',
         label: 'LED Vermelho',
         isLocked: false,
-        position: { x: 520, y: 160 },
+        position: { x: 580, y: 140 },
         parameters: { color: 'RED' }
       }
     ];

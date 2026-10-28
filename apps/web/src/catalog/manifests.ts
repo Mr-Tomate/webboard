@@ -1,6 +1,11 @@
 import type { ComponentManifest } from '@webboard/contracts';
+import { COMPONENT_CATALOG as COMPONENTS_PKG_CATALOG } from '@webboard/components';
+
+const breadboardManifest = COMPONENTS_PKG_CATALOG.BOARD_BREADBOARD_HALF.manifest;
 
 export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
+  BOARD_BREADBOARD_HALF: breadboardManifest,
+
   MICROCONTROLLER_ARDUINO_UNO: {
     id: 'MICROCONTROLLER_ARDUINO_UNO',
     name: 'Arduino Uno R3',
@@ -41,10 +46,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'ACTUATOR_LED',
     name: 'LED Difuso 5mm',
     category: 'ACTUATOR',
-    dimensions: { width: 70, height: 75 },
+    dimensions: { width: 90, height: 100 },
     pins: [
-      { id: 'ANODE', label: 'Anodo(+)', type: 'PASSIVE', anchorPosition: { x: 22, y: 65 } },
-      { id: 'CATHODE', label: 'Catodo(-)', type: 'PASSIVE', anchorPosition: { x: 48, y: 65 } }
+      { id: 'ANODE', label: '+', type: 'PASSIVE', anchorPosition: { x: 28, y: 76 } },
+      { id: 'CATHODE', label: '-', type: 'PASSIVE', anchorPosition: { x: 62, y: 76 } }
     ],
     defaultParameters: {
       color: 'RED',
@@ -58,10 +63,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'PASSIVE_RESISTOR',
     name: 'Resistor de Precisão',
     category: 'PASSIVE',
-    dimensions: { width: 90, height: 44 },
+    dimensions: { width: 140, height: 60 },
     pins: [
-      { id: 'PIN_1', label: '1', type: 'PASSIVE', anchorPosition: { x: 8, y: 22 } },
-      { id: 'PIN_2', label: '2', type: 'PASSIVE', anchorPosition: { x: 82, y: 22 } }
+      { id: 'PIN_1', label: '1', type: 'PASSIVE', anchorPosition: { x: 12, y: 30 } },
+      { id: 'PIN_2', label: '2', type: 'PASSIVE', anchorPosition: { x: 128, y: 30 } }
     ],
     defaultParameters: {
       resistanceOhms: 220,
@@ -75,10 +80,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'INPUT_PUSHBUTTON',
     name: 'Botão Táctil (Pushbutton)',
     category: 'INPUT',
-    dimensions: { width: 70, height: 60 },
+    dimensions: { width: 100, height: 90 },
     pins: [
-      { id: 'PIN_1', label: 'A', type: 'PASSIVE', anchorPosition: { x: 10, y: 30 } },
-      { id: 'PIN_2', label: 'B', type: 'PASSIVE', anchorPosition: { x: 60, y: 30 } }
+      { id: 'PIN_1', label: '1', type: 'PASSIVE', anchorPosition: { x: 14, y: 45 } },
+      { id: 'PIN_2', label: '2', type: 'PASSIVE', anchorPosition: { x: 86, y: 45 } }
     ],
     defaultParameters: {
       isNormallyOpen: true
@@ -90,11 +95,11 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'INPUT_POTENTIOMETER',
     name: 'Potenciômetro Rotativo',
     category: 'INPUT',
-    dimensions: { width: 90, height: 70 },
+    dimensions: { width: 120, height: 100 },
     pins: [
-      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 18, y: 62 } },
-      { id: 'SIG', label: 'SIG', type: 'ANALOG_IN', anchorPosition: { x: 45, y: 62 } },
-      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 72, y: 62 } }
+      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 25, y: 80 } },
+      { id: 'SIG', label: 'SIG', type: 'ANALOG_IN', anchorPosition: { x: 60, y: 80 } },
+      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 95, y: 80 } }
     ],
     defaultParameters: {
       totalResistanceOhms: 10000,
@@ -107,10 +112,10 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'ACTUATOR_BUZZER',
     name: 'Buzzer Piezoelétrico',
     category: 'ACTUATOR',
-    dimensions: { width: 70, height: 70 },
+    dimensions: { width: 100, height: 100 },
     pins: [
-      { id: 'POSITIVE', label: '(+)', type: 'PASSIVE', anchorPosition: { x: 22, y: 62 } },
-      { id: 'NEGATIVE', label: '(-)', type: 'POWER_GND', anchorPosition: { x: 48, y: 62 } }
+      { id: 'POSITIVE', label: '+', type: 'PASSIVE', anchorPosition: { x: 30, y: 78 } },
+      { id: 'NEGATIVE', label: '-', type: 'POWER_GND', anchorPosition: { x: 70, y: 78 } }
     ],
     defaultParameters: {
       frequencyHz: 2000
@@ -122,12 +127,12 @@ export const COMPONENT_CATALOG: Record<string, ComponentManifest> = {
     id: 'SENSOR_ULTRASONIC_HCSR04',
     name: 'Sensor Ultrassônico HC-SR04',
     category: 'SENSOR',
-    dimensions: { width: 130, height: 70 },
+    dimensions: { width: 160, height: 90 },
     pins: [
-      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 30, y: 64 } },
-      { id: 'TRIG', label: 'Trig', type: 'DIGITAL_IO', anchorPosition: { x: 55, y: 64 } },
-      { id: 'ECHO', label: 'Echo', type: 'DIGITAL_IO', anchorPosition: { x: 75, y: 64 } },
-      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 100, y: 64 } }
+      { id: 'VCC', label: 'VCC', type: 'POWER_VCC', anchorPosition: { x: 35, y: 75 } },
+      { id: 'TRIG', label: 'TRIG', type: 'DIGITAL_IO', anchorPosition: { x: 65, y: 75 } },
+      { id: 'ECHO', label: 'ECHO', type: 'DIGITAL_IO', anchorPosition: { x: 95, y: 75 } },
+      { id: 'GND', label: 'GND', type: 'POWER_GND', anchorPosition: { x: 125, y: 75 } }
     ],
     defaultParameters: {
       simulatedDistanceCm: 25.0

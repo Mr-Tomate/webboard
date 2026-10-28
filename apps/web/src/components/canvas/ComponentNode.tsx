@@ -51,8 +51,12 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   const isLedActive = electricalState?.visualState === 'active';
   const isDestroyed = electricalState?.visualState === 'destroyed' || electricalState?.isDestroyed;
 
+  const isBreadboard = component.type === 'BOARD_BREADBOARD_HALF' || component.type === 'BOARD_BREADBOARD';
+
   const getThemeColor = () => {
     if (isDestroyed) return '#2e1014'; // Queimado por sobrecorrente
+
+    if (isBreadboard) return '#f4f1ea'; // Bege marfim clássico da Protoboard
 
     switch (manifest?.category) {
       case 'MCU':
@@ -105,12 +109,12 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
     >
       {/* Sombra Neobrutalista sólida preta */}
       <Rect
-        x={4}
-        y={4}
+        x={isBreadboard ? 6 : 4}
+        y={isBreadboard ? 6 : 4}
         width={width}
         height={height}
         fill="#09090b"
-        cornerRadius={4}
+        cornerRadius={isBreadboard ? 8 : 4}
       />
 
       {/* Corpo principal do componente */}
@@ -118,14 +122,103 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         width={width}
         height={height}
         fill={getThemeColor()}
-        stroke={isDestroyed ? '#ef4444' : isSelected ? '#00e599' : '#3f3f46'}
-        strokeWidth={isSelected || isDestroyed ? 2.5 : 1.5}
-        cornerRadius={4}
+        stroke={isDestroyed ? '#ef4444' : isSelected ? '#00e599' : isBreadboard ? '#52525b' : '#3f3f46'}
+        strokeWidth={isSelected || isDestroyed ? 2.5 : isBreadboard ? 2 : 1.5}
+        cornerRadius={isBreadboard ? 8 : 4}
       />
 
       {/* ========================================================
           DETALHES VETORIAIS ESPECÍFICOS POR COMPONENTE
           ======================================================== */}
+
+      {/* 0. Protoboard Half-Size 400 Furos */}
+      {isBreadboard && (
+        <Group listening={false}>
+          {/* Linhas serigráficas dos barramentos superiores */}
+          <Line points={[25, 12, 515, 12]} stroke="#ef4444" strokeWidth={2} />
+          <Line points={[25, 46, 515, 46]} stroke="#3b82f6" strokeWidth={2} />
+          <Text text="+" fontSize={12} fontStyle="bold" fill="#ef4444" x={12} y={5} />
+          <Text text="-" fontSize={14} fontStyle="bold" fill="#3b82f6" x={14} y={38} />
+          <Text text="+" fontSize={12} fontStyle="bold" fill="#ef4444" x={522} y={5} />
+          <Text text="-" fontSize={14} fontStyle="bold" fill="#3b82f6" x={524} y={38} />
+
+          {/* Fenda central isolante DIP */}
+          <Rect
+            x={15}
+            y={136}
+            width={510}
+            height={8}
+            fill="#ded8ca"
+            stroke="#c8c0b0"
+            strokeWidth={1}
+            cornerRadius={2}
+          />
+
+          {/* Serigrafia das colunas 1..30 */}
+          {[1, 5, 10, 15, 20, 25, 30].map((col) => {
+            const x = 35 + (col - 1) * 16;
+            return (
+              <React.Fragment key={col}>
+                <Text
+                  text={String(col)}
+                  fontSize={8}
+                  fontFamily="monospace"
+                  fontStyle="bold"
+                  fill="#71717a"
+                  x={x - 6}
+                  y={52}
+                  width={12}
+                  align="center"
+                />
+                <Text
+                  text={String(col)}
+                  fontSize={8}
+                  fontFamily="monospace"
+                  fontStyle="bold"
+                  fill="#71717a"
+                  x={x - 6}
+                  y={224}
+                  width={12}
+                  align="center"
+                />
+              </React.Fragment>
+            );
+          })}
+
+          {/* Serigrafia das letras de linhas A-E e F-J nas laterais */}
+          {['A', 'B', 'C', 'D', 'E'].map((letter, idx) => (
+            <React.Fragment key={letter}>
+              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={18} y={60 + idx * 16} />
+              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={514} y={60 + idx * 16} />
+            </React.Fragment>
+          ))}
+          {['F', 'G', 'H', 'I', 'J'].map((letter, idx) => (
+            <React.Fragment key={letter}>
+              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={18} y={148 + idx * 16} />
+              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={514} y={148 + idx * 16} />
+            </React.Fragment>
+          ))}
+
+          {/* Linhas serigráficas dos barramentos inferiores */}
+          <Line points={[25, 234, 515, 234]} stroke="#ef4444" strokeWidth={2} />
+          <Line points={[25, 268, 515, 268]} stroke="#3b82f6" strokeWidth={2} />
+          <Text text="+" fontSize={12} fontStyle="bold" fill="#ef4444" x={12} y={227} />
+          <Text text="-" fontSize={14} fontStyle="bold" fill="#3b82f6" x={14} y={260} />
+          <Text text="+" fontSize={12} fontStyle="bold" fill="#ef4444" x={522} y={227} />
+          <Text text="-" fontSize={14} fontStyle="bold" fill="#3b82f6" x={524} y={260} />
+
+          {/* Serigrafia e identificação no centro da fenda */}
+          <Text
+            text="PROTOBOARD 400 FUROS (HALF-SIZE)"
+            fontSize={9}
+            fontFamily="monospace"
+            fontStyle="bold"
+            fill="#a1a1aa"
+            x={180}
+            y={135}
+          />
+        </Group>
+      )}
 
       {/* 1. Arduino Uno R3: Chip ATmega328P DIP-28, porta USB, cristal e LED L */}
       {component.type === 'MICROCONTROLLER_ARDUINO_UNO' && (
@@ -195,58 +288,58 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         </Group>
       )}
 
-      {/* 2. Resistor de Precisão: Corpo cerâmico com faixas coloridas de código de cores */}
+      {/* 2. Resistor de Precisão: Corpo cerâmico com faixas coloridas ampliadas */}
       {component.type === 'PASSIVE_RESISTOR' && (
         <Group>
           {/* Terminais metálicos laterais */}
-          <Line points={[8, 22, 22, 22]} stroke="#a1a1aa" strokeWidth={3} lineCap="round" />
-          <Line points={[68, 22, 82, 22]} stroke="#a1a1aa" strokeWidth={3} lineCap="round" />
+          <Line points={[12, 30, 36, 30]} stroke="#a1a1aa" strokeWidth={3.5} lineCap="round" />
+          <Line points={[104, 30, 128, 30]} stroke="#a1a1aa" strokeWidth={3.5} lineCap="round" />
           {/* Corpo cerâmico cilíndrico */}
           <Rect
-            x={22}
-            y={11}
-            width={46}
-            height={22}
+            x={36}
+            y={15}
+            width={68}
+            height={30}
             fill={isDestroyed ? '#261214' : '#d4b483'}
             stroke="#18181b"
             strokeWidth={2}
-            cornerRadius={3}
+            cornerRadius={4}
           />
           {/* Faixas coloridas do resistor (220 ohms: Vermelho, Vermelho, Marrom, Dourado) */}
           {!isDestroyed && (
             <>
-              <Rect x={28} y={11} width={4.5} height={22} fill="#dc2626" />
-              <Rect x={36} y={11} width={4.5} height={22} fill="#dc2626" />
-              <Rect x={45} y={11} width={4.5} height={22} fill="#78350f" />
-              <Rect x={57} y={11} width={4.5} height={22} fill="#eab308" />
+              <Rect x={46} y={15} width={6} height={30} fill="#dc2626" />
+              <Rect x={58} y={15} width={6} height={30} fill="#dc2626" />
+              <Rect x={70} y={15} width={6} height={30} fill="#78350f" />
+              <Rect x={88} y={15} width={6} height={30} fill="#eab308" />
             </>
           )}
           {isDestroyed && (
-            <Text text="QUEIMADO" fontSize={8} fontStyle="bold" fill="#ef4444" x={24} y={17} />
+            <Text text="QUEIMADO" fontSize={9} fontStyle="bold" fill="#ef4444" x={42} y={24} />
           )}
         </Group>
       )}
 
-      {/* 3. LED Difuso 5mm: Cúpula com halo luminoso ativo e terminais */}
+      {/* 3. LED Difuso 5mm: Cúpula ampla com halo generoso e pernas até os pinos */}
       {component.type === 'ACTUATOR_LED' && (
         <Group>
           {/* Halo de luz difusa neon quando conduzindo corrente */}
           {isLedActive && (
             <Circle
               x={width / 2}
-              y={24}
-              radius={24}
+              y={34}
+              radius={32}
               fill="rgba(239, 68, 68, 0.45)"
               shadowColor="#ef4444"
-              shadowBlur={20}
+              shadowBlur={24}
             />
           )}
 
-          {/* Cúpula do LED */}
+          {/* Cúpula do LED 5mm ampliada */}
           <Circle
             x={width / 2}
-            y={24}
-            radius={18}
+            y={34}
+            radius={22}
             fill={
               isDestroyed
                 ? '#1c1917'
@@ -257,22 +350,22 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
                 : '#22c55e'
             }
             stroke={isDestroyed ? '#7f1d1d' : '#ffffff'}
-            strokeWidth={1.5}
+            strokeWidth={2}
           />
 
-          {/* Brilho vítreo na cúpula */}
+          {/* Brilho reflexivo na cúpula */}
           {!isDestroyed && (
             <Circle
-              x={width / 2 - 5}
-              y={20}
-              radius={4}
+              x={width / 2 - 6}
+              y={28}
+              radius={5}
               fill="rgba(255, 255, 255, 0.65)"
             />
           )}
 
-          {/* Base e terminais saindo para os pinos */}
-          <Line points={[width / 2 - 10, 42, 22, 65]} stroke="#a1a1aa" strokeWidth={2} />
-          <Line points={[width / 2 + 10, 42, 48, 65]} stroke="#a1a1aa" strokeWidth={2} />
+          {/* Terminais metálicos saindo da base do LED até os pinos */}
+          <Line points={[width / 2 - 12, 55, 28, 76]} stroke="#a1a1aa" strokeWidth={2.5} lineCap="round" />
+          <Line points={[width / 2 + 12, 55, 62, 76]} stroke="#a1a1aa" strokeWidth={2.5} lineCap="round" />
 
           {/* Indicador de destruição térmica por sobrecorrente */}
           {isDestroyed && (
@@ -282,101 +375,129 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
               fontStyle="bold"
               fill="#ef4444"
               x={width / 2 - 24}
-              y={20}
+              y={30}
             />
           )}
         </Group>
       )}
 
-      {/* 4. Sensor Ultrassônico HC-SR04: Transdutores T e R metálicos */}
+      {/* 4. Sensor Ultrassônico HC-SR04: Transdutores T e R ampliados */}
       {component.type === 'SENSOR_ULTRASONIC_HCSR04' && (
         <Group>
           {/* Transdutor Emissor (T) */}
           <Circle
-            x={35}
-            y={32}
-            radius={18}
+            x={45}
+            y={36}
+            radius={24}
             fill="#3f3f46"
             stroke="#e4e4e7"
             strokeWidth={2}
           />
-          <Text text="T" fontSize={11} fontFamily="monospace" fontStyle="bold" fill="#ffffff" x={31} y={26} />
+          <Text text="T" fontSize={13} fontFamily="monospace" fontStyle="bold" fill="#ffffff" x={40} y={28} />
           {/* Transdutor Receptor (R) */}
           <Circle
-            x={95}
-            y={32}
-            radius={18}
+            x={115}
+            y={36}
+            radius={24}
             fill="#3f3f46"
             stroke="#e4e4e7"
             strokeWidth={2}
           />
-          <Text text="R" fontSize={11} fontFamily="monospace" fontStyle="bold" fill="#ffffff" x={91} y={26} />
+          <Text text="R" fontSize={13} fontFamily="monospace" fontStyle="bold" fill="#ffffff" x={110} y={28} />
+          {/* Cristal de quartzo */}
+          <Rect
+            x={74}
+            y={28}
+            width={12}
+            height={16}
+            fill="#a1a1aa"
+            stroke="#52525b"
+            strokeWidth={1}
+            cornerRadius={2}
+          />
         </Group>
       )}
 
-      {/* 5. Pushbutton: Botão tátil mecânico */}
+      {/* 5. Pushbutton: Botão tátil mecânico ampliado */}
       {component.type === 'INPUT_PUSHBUTTON' && (
         <Group>
-          <Circle
-            x={width / 2}
-            y={30}
-            radius={17}
+          {/* Terminais metálicos laterais */}
+          <Line points={[14, 45, 25, 45]} stroke="#a1a1aa" strokeWidth={3} lineCap="round" />
+          <Line points={[75, 45, 86, 45]} stroke="#a1a1aa" strokeWidth={3} lineCap="round" />
+          {/* Base metálica do switch */}
+          <Rect
+            x={25}
+            y={20}
+            width={50}
+            height={50}
             fill="#18181b"
             stroke="#52525b"
             strokeWidth={2}
+            cornerRadius={6}
           />
+          {/* Botão atuador redondo */}
           <Circle
-            x={width / 2}
-            y={30}
-            radius={11}
+            x={50}
+            y={45}
+            radius={16}
             fill="#3f3f46"
+            stroke="#71717a"
+            strokeWidth={1.5}
           />
         </Group>
       )}
 
-      {/* 6. Potenciômetro: Knob giratório com indicador */}
+      {/* 6. Potenciômetro: Knob rotativo ampliado com indicador */}
       {component.type === 'INPUT_POTENTIOMETER' && (
         <Group>
           <Circle
             x={width / 2}
-            y={28}
-            radius={19}
+            y={40}
+            radius={28}
             fill="#18181b"
             stroke="#52525b"
             strokeWidth={2}
           />
           <Circle
             x={width / 2}
-            y={28}
-            radius={13}
+            y={40}
+            radius={18}
             fill="#0284c7"
           />
-          <Line points={[width / 2, 28, width / 2, 17]} stroke="#ffffff" strokeWidth={2.5} lineCap="round" />
+          <Line points={[width / 2, 40, width / 2, 24]} stroke="#ffffff" strokeWidth={3} lineCap="round" />
+          {/* Terminais para os pinos inferiores */}
+          <Line points={[width / 2 - 35, 68, 25, 80]} stroke="#a1a1aa" strokeWidth={2} />
+          <Line points={[width / 2, 68, 60, 80]} stroke="#a1a1aa" strokeWidth={2} />
+          <Line points={[width / 2 + 35, 68, 95, 80]} stroke="#a1a1aa" strokeWidth={2} />
         </Group>
       )}
 
-      {/* 7. Buzzer Piezoelétrico */}
+      {/* 7. Buzzer Piezoelétrico ampliado */}
       {component.type === 'ACTUATOR_BUZZER' && (
         <Group>
           <Circle
             x={width / 2}
-            y={30}
-            radius={22}
+            y={42}
+            radius={30}
             fill="#18181b"
             stroke="#52525b"
             strokeWidth={2}
           />
           <Circle
             x={width / 2}
-            y={30}
-            radius={7}
+            y={42}
+            radius={9}
             fill="#3f3f46"
+            stroke="#52525b"
+            strokeWidth={1}
           />
+          <Line points={[width / 2 - 20, 72, 30, 78]} stroke="#a1a1aa" strokeWidth={2} />
+          <Line points={[width / 2 + 20, 72, 70, 78]} stroke="#a1a1aa" strokeWidth={2} />
         </Group>
       )}
 
-      {/* Rótulo do Componente (se não for Arduino que tem serigrafia própria) */}
-      {component.type !== 'MICROCONTROLLER_ARDUINO_UNO' && (
+      {/* Rótulo do Componente (se não for Arduino nem Breadboard que têm serigrafia própria) */}
+      {component.type !== 'MICROCONTROLLER_ARDUINO_UNO' && !isBreadboard && (
         <Text
           text={
             isDestroyed
@@ -410,6 +531,7 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
             mode={mode}
             isConnectingWire={isConnectingWire}
             isNetHighlighted={highlightedPinKeys.has(pinKey)}
+            isBreadboard={isBreadboard}
             onStartWire={onStartWire}
             onFinishWire={onFinishWire}
             onHoverStart={onPinHoverStart}
