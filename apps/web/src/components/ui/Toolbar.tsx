@@ -8,7 +8,8 @@ import {
   Trash2,
   AlertTriangle,
   RotateCcw,
-  Zap
+  Zap,
+  Code
 } from 'lucide-react';
 import type { WorkbenchMode, WorkbenchFaultPayload, WireColor } from '@webboard/contracts';
 import { WireColorPalette } from './WireColorPalette.js';
@@ -20,7 +21,9 @@ interface ToolbarProps {
   hasSelection: boolean;
   hasSelectedWire: boolean;
   activeWireColor: WireColor;
+  isCodePanelOpen: boolean;
   onSelectWireColor: (color: WireColor) => void;
+  onToggleCodePanel: () => void;
   onStartSimulation: () => void;
   onStopSimulation: () => void;
   onZoomIn: () => void;
@@ -37,7 +40,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   hasSelection,
   hasSelectedWire,
   activeWireColor,
+  isCodePanelOpen,
   onSelectWireColor,
+  onToggleCodePanel,
   onStartSimulation,
   onStopSimulation,
   onZoomIn,
@@ -134,36 +139,52 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         </div>
       </div>
 
-      {/* Viewport Zoom Controls */}
-      <div className="flex items-center gap-1 bg-[#1a1a1e]/90 backdrop-blur border border-[#2e2e34] p-1.5 rounded-lg shadow-xl pointer-events-auto">
+      {/* Right: Zoom & Code Workspace Toggle */}
+      <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-1 bg-[#1a1a1e]/90 backdrop-blur border border-[#2e2e34] p-1.5 rounded-lg shadow-xl">
+          <button
+            onClick={onZoomOut}
+            title="Reduzir Zoom (-)"
+            className="p-2 rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#25252b] transition-colors cursor-pointer"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+
+          <span className="text-xs font-mono text-[#71717a] min-w-12 text-center select-none">
+            {Math.round(scale * 100)}%
+          </span>
+
+          <button
+            onClick={onZoomIn}
+            title="Aumentar Zoom (+)"
+            className="p-2 rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#25252b] transition-colors cursor-pointer"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+
+          <div className="h-4 w-px bg-[#2e2e34] mx-1" />
+
+          <button
+            onClick={onResetZoom}
+            title="Restaurar visualização original (100%)"
+            className="p-2 rounded-md text-[#a1a1aa] hover:text-[#00e599] hover:bg-[#25252b] transition-colors cursor-pointer"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Toggle Code / Serial Panel */}
         <button
-          onClick={onZoomOut}
-          title="Reduzir Zoom (-)"
-          className="p-2 rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#25252b] transition-colors cursor-pointer"
+          onClick={onToggleCodePanel}
+          title={isCodePanelOpen ? 'Fechar painel de código' : 'Abrir editor de código e terminal'}
+          className={`flex items-center gap-2 px-3.5 py-2.5 rounded-lg border font-semibold text-xs tracking-wide transition-all shadow-xl cursor-pointer ${
+            isCodePanelOpen
+              ? 'bg-[#27272a] text-[#00e599] border-[#00e599]/40'
+              : 'bg-[#1a1a1e]/90 text-zinc-300 border-[#2e2e34] hover:border-zinc-500'
+          }`}
         >
-          <ZoomOut className="w-4 h-4" />
-        </button>
-
-        <span className="text-xs font-mono text-[#71717a] min-w-12 text-center select-none">
-          {Math.round(scale * 100)}%
-        </span>
-
-        <button
-          onClick={onZoomIn}
-          title="Aumentar Zoom (+)"
-          className="p-2 rounded-md text-[#a1a1aa] hover:text-white hover:bg-[#25252b] transition-colors cursor-pointer"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </button>
-
-        <div className="h-4 w-px bg-[#2e2e34] mx-1" />
-
-        <button
-          onClick={onResetZoom}
-          title="Restaurar visualização original (100%)"
-          className="p-2 rounded-md text-[#a1a1aa] hover:text-[#00e599] hover:bg-[#25252b] transition-colors cursor-pointer"
-        >
-          <Maximize2 className="w-4 h-4" />
+          <Code className="w-4 h-4" />
+          <span>CÓDIGO & SERIAL</span>
         </button>
       </div>
     </header>

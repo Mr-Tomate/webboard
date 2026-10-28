@@ -10,6 +10,7 @@
     "test": "node --experimental-strip-types --test test/*.test.ts"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@webboard/contracts": "*",
     "@webboard/core": "*",
     "konva": "^10.9.0",
