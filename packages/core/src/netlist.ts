@@ -54,12 +54,23 @@ export function defaultPinResolver(
   const component = circuit?.components.find((c) => c.id === componentId);
   const componentType = component?.type || '';
 
-  // Reconhecimento de alimentação padrão (5V, 3.3V, VIN)
+  // Determinar se o componente atua como gerador de energia (Fontes, Baterias ou MCUs)
+  const isPowerSource =
+    componentType.includes('MCU') ||
+    componentType.includes('ARDUINO') ||
+    componentType.includes('ESP32') ||
+    componentType.includes('POWER') ||
+    componentType.includes('BATTERY') ||
+    componentType.includes('SUPPLY') ||
+    componentType === '';
+
+  // Reconhecimento de alimentação padrão (5V, 3.3V, VIN) exclusivo para fontes ou MCUs
   if (
-    upperPin === '5V' ||
-    upperPin === '3V3' ||
-    upperPin === '3.3V' ||
-    upperPin === 'VCC'
+    isPowerSource &&
+    (upperPin === '5V' ||
+      upperPin === '3V3' ||
+      upperPin === '3.3V' ||
+      upperPin === 'VCC')
   ) {
     const voltage = upperPin === '3V3' || upperPin === '3.3V' ? 3.3 : 5.0;
     return {
@@ -72,8 +83,8 @@ export function defaultPinResolver(
     };
   }
 
-  // Reconhecimento de Terra padrão (GND, GND_1, GND_2, etc.)
-  if (upperPin.startsWith('GND')) {
+  // Reconhecimento de Terra padrão (GND, GND_1, etc.) exclusivo para fontes ou MCUs
+  if (isPowerSource && upperPin.startsWith('GND')) {
     return {
       componentId,
       pinId,
@@ -104,6 +115,7 @@ export function defaultPinResolver(
     }
   }
 
+  // Pinos de componentes passivos ou atuadores são terminais receptores (PASSIVE)
   return {
     componentId,
     pinId,
@@ -265,7 +277,6 @@ export class NetlistSolver {
               d2.info.digitalLevel !== 'HIGH_Z');
 
           if (isConflict) {
-            // Encontrar o fio causador do caminho entre os dois pinos
             const connectingWireId = NetlistSolver.findConnectingWire(
               d1.pinRef.pinKey,
               d2.pinRef.pinKey,
@@ -318,7 +329,7 @@ export class NetlistSolver {
     while (queue.length > 0) {
       const { currentKey, pathWires } = queue.shift()!;
       if (currentKey === targetKey && pathWires.length > 0) {
-        return pathWires[0]; // Retorna o primeiro condutor no caminho do curto
+        return pathWires[0];
       }
 
       const neighbors = adjacency.get(currentKey) || [];
