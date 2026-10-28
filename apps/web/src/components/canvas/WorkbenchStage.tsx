@@ -1,18 +1,28 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Stage, Layer, Shape, Circle } from 'react-konva';
 import type { Position2D } from '@webboard/contracts';
-import { GridLayer } from './GridLayer.js';
-import { ComponentNode } from './ComponentNode.js';
-import { WireNode } from './WireNode.js';
-import { drawWirePath } from '../../utils/geometry.js';
-import type { useViewport } from '../../hooks/useViewport.js';
-import type { useWorkbench } from '../../hooks/useWorkbench.js';
+import { GridLayer } from './GridLayer.tsx';
+import { ComponentNode } from './ComponentNode.tsx';
+import { WireNode } from './WireNode.tsx';
+import { drawWirePath } from '../../utils/geometry.ts';
+import type { useViewport } from '../../hooks/useViewport.ts';
+import type { useWorkbench } from '../../hooks/useWorkbench.ts';
 
 interface WorkbenchStageProps {
   viewportHook: ReturnType<typeof useViewport>;
   workbenchHook: ReturnType<typeof useWorkbench>;
 }
 
+/**
+ * WorkbenchStage - Pipeline Gráfico Konva 2D em 5 Camadas Isoladas.
+ *
+ * Particionado conforme Spec 12 para isolamento de redesenho e garantia de 60 FPS:
+ * - Layer 1: Grid & Background (listening=false)
+ * - Layer 2: WiresLayer (condutores conectados)
+ * - Layer 3: ComponentsLayer (componentes vetorizados SVG e pinos)
+ * - Layer 4: InteractionLayer (cabo elétrico dinâmico sendo esticado pelo mouse)
+ * - Layer 5: EffectsLayer (halos de luz difusa, faíscas de curto e alertas de falha)
+ */
 export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   viewportHook,
   workbenchHook
@@ -111,7 +121,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       }
     }
 
-    // Clique com botão esquerdo no fundo do palco enquanto puxa um fio: adiciona waypoint intermediário
+    // Clique com botão esquerdo no fundo vazio da bancada enquanto puxa fio: fixa waypoint
     if (draggingWire && e.evt.button === 0 && e.target === stageRef.current) {
       const stage = stageRef.current;
       if (stage) {
@@ -124,7 +134,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
       }
     }
 
-    // Clique no fundo vazio desmarca seleções
+    // Clique no fundo desmarca seleções
     if (e.target === stageRef.current) {
       setSelectedComponentId(null);
       setSelectedWireId(null);
@@ -201,16 +211,22 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
         onTouchMove={handleMouseMove}
         onTouchEnd={handleMouseUp}
       >
-        {/* Camada 1: Grade Infinita 20px com Snap */}
-        <GridLayer
-          stageOffset={viewport.offset}
-          scale={viewport.scale}
-          width={dimensions.width}
-          height={dimensions.height}
-        />
+        {/* ========================================================
+            CAMADA 1: Grid & Background (Cache estático, sem eventos)
+            ======================================================== */}
+        <Layer id="layer-grid" listening={false}>
+          <GridLayer
+            stageOffset={viewport.offset}
+            scale={viewport.scale}
+            width={dimensions.width}
+            height={dimensions.height}
+          />
+        </Layer>
 
-        {/* Camada 2: Condutores Elétricos */}
-        <Layer>
+        {/* ========================================================
+            CAMADA 2: Condutores (Wires) Estáticos
+            ======================================================== */}
+        <Layer id="layer-wires">
           {wires.map((wire) => (
             <WireNode
               key={wire.id}
@@ -226,8 +242,10 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
           ))}
         </Layer>
 
-        {/* Camada 3: Componentes Físicos com Pinos Ancorados e Estados Elétricos */}
-        <Layer>
+        {/* ========================================================
+            CAMADA 3: Componentes Físicos e Pinos Ancorados
+            ======================================================== */}
+        <Layer id="layer-components">
           {components.map((component) => (
             <ComponentNode
               key={component.id}
@@ -247,65 +265,116 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
           ))}
         </Layer>
 
-        {/* Camada 4: Fio Elástico com Waypoints em Criação */}
-        {draggingWire && (
-          <Layer>
-            {/* Halo / Contorno escuro da linha elástica */}
-            <Shape
-              sceneFunc={(ctx, shape) => {
-                drawWirePath(
-                  ctx as any,
-                  draggingWire.fromPoint,
-                  draggingWire.currentPoint,
-                  draggingWire.waypoints
-                );
-                (ctx as any).strokeShape(shape);
-              }}
-              stroke="#09090b"
-              strokeWidth={5}
-              lineCap="round"
-              lineJoin="round"
-            />
-            {/* Núcleo do fio elástico animado com tracejado */}
-            <Shape
-              sceneFunc={(ctx, shape) => {
-                drawWirePath(
-                  ctx as any,
-                  draggingWire.fromPoint,
-                  draggingWire.currentPoint,
-                  draggingWire.waypoints
-                );
-                (ctx as any).strokeShape(shape);
-              }}
-              stroke="#00e599"
-              strokeWidth={3}
-              dash={[8, 5]}
-              lineCap="round"
-              lineJoin="round"
-            />
-            {/* Waypoints intermediários já fixados */}
-            {draggingWire.waypoints.map((wp, idx) => (
+        {/* ========================================================
+            CAMADA 4: Interação Ativa (Fio em arraste a 60 FPS)
+            ======================================================== */}
+        <Layer id="layer-interaction">
+          {draggingWire && (
+            <>
+              {/* Contorno Neobrutalista do fio em traçado */}
+              <Shape
+                sceneFunc={(ctx, shape) => {
+                  drawWirePath(
+                    ctx as any,
+                    draggingWire.fromPoint,
+                    draggingWire.currentPoint,
+                    draggingWire.waypoints
+                  );
+                  (ctx as any).strokeShape(shape);
+                }}
+                stroke="#09090b"
+                strokeWidth={5}
+                lineCap="round"
+                lineJoin="round"
+                listening={false}
+              />
+              {/* Núcleo do fio elástico animado com tracejado */}
+              <Shape
+                sceneFunc={(ctx, shape) => {
+                  drawWirePath(
+                    ctx as any,
+                    draggingWire.fromPoint,
+                    draggingWire.currentPoint,
+                    draggingWire.waypoints
+                  );
+                  (ctx as any).strokeShape(shape);
+                }}
+                stroke="#00e599"
+                strokeWidth={3}
+                dash={[8, 5]}
+                lineCap="round"
+                lineJoin="round"
+                listening={false}
+              />
+              {/* Vértices intermediários fixados */}
+              {draggingWire.waypoints.map((wp, idx) => (
+                <Circle
+                  key={`drag_wp_${idx}`}
+                  x={wp.x}
+                  y={wp.y}
+                  radius={4.5}
+                  fill="#00e599"
+                  stroke="#09090b"
+                  strokeWidth={1.5}
+                  listening={false}
+                />
+              ))}
+              {/* Ponta guia magnética sobre o cursor */}
               <Circle
-                key={`drag_wp_${idx}`}
-                x={wp.x}
-                y={wp.y}
-                radius={4.5}
+                x={draggingWire.currentPoint.x}
+                y={draggingWire.currentPoint.y}
+                radius={6}
                 fill="#00e599"
                 stroke="#09090b"
                 strokeWidth={1.5}
+                listening={false}
               />
-            ))}
-            {/* Ponta guia magnética seguindo o cursor */}
-            <Circle
-              x={draggingWire.currentPoint.x}
-              y={draggingWire.currentPoint.y}
-              radius={6}
-              fill="#00e599"
-              stroke="#09090b"
-              strokeWidth={1.5}
-            />
-          </Layer>
-        )}
+            </>
+          )}
+        </Layer>
+
+        {/* ========================================================
+            CAMADA 5: Alertas e Efeitos Visuais (FX / Glows / Falhas)
+            ======================================================== */}
+        <Layer id="layer-effects" listening={false}>
+          {components.map((comp) => {
+            const state = electricalStates.get(comp.id);
+            if (!state) return null;
+
+            // Halo luminoso difuso de LED aceso
+            if (comp.type === 'ACTUATOR_LED' && state.visualState === 'active') {
+              return (
+                <Circle
+                  key={`fx_led_${comp.id}`}
+                  x={comp.position.x + 35}
+                  y={comp.position.y + 30}
+                  radius={28}
+                  fill="rgba(239, 68, 68, 0.45)"
+                  shadowColor="#ef4444"
+                  shadowBlur={24}
+                />
+              );
+            }
+
+            // Indicador de sobrecorrente térmica ou queima (RN-BNC-05)
+            if (state.visualState === 'destroyed' || state.isDestroyed) {
+              return (
+                <Circle
+                  key={`fx_burned_${comp.id}`}
+                  x={comp.position.x + 35}
+                  y={comp.position.y + 30}
+                  radius={18}
+                  fill="rgba(239, 68, 68, 0.25)"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  dash={[4, 3]}
+                />
+              );
+            }
+
+            return null;
+          })}
+        </Layer>
       </Stage>
     </div>
   );
