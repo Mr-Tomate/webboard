@@ -1,3 +1,6 @@
+/** Flash do ATmega328P: 32KB = 16384 words de 16 bits. */
+export const ATMEGA328P_FLASH_WORDS = 16384;
+
 /**
  * Parser de formato Intel HEX para memória de programa do microcontrolador AVR.
  */
@@ -33,4 +36,68 @@ export function parseIntelHex(hexString: string, targetBytes: Uint8Array): void 
       baseAddress = parseInt(trimmed.substring(9, 13), 16) << 16;
     }
   }
+}
+
+/**
+ * Valida estrutura e checksums de um arquivo Intel HEX antes de gravá-lo na flash virtual.
+ * Retorna a descrição do primeiro problema encontrado, ou null se o arquivo for íntegro.
+ */
+export function validateIntelHex(hexString: string): string | null {
+  const lines = hexString
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  if (lines.length === 0) return 'arquivo Intel HEX vazio.';
+
+  let dataRecords = 0;
+  let hasEof = false;
+
+  for (let n = 0; n < lines.length; n++) {
+    const line = lines[n];
+    const lineNo = n + 1;
+
+    if (!line.startsWith(':')) return `linha ${lineNo}: registro sem prefixo ':'.`;
+    const body = line.substring(1);
+    if (!/^[0-9a-fA-F]+$/.test(body) || body.length % 2 !== 0 || body.length < 10) {
+      return `linha ${lineNo}: caracteres hexadecimais inválidos.`;
+    }
+
+    const bytes: number[] = [];
+    for (let i = 0; i < body.length; i += 2) {
+      bytes.push(parseInt(body.substring(i, i + 2), 16));
+    }
+
+    const byteCount = bytes[0];
+    if (bytes.length !== byteCount + 5) {
+      return `linha ${lineNo}: tamanho do registro não confere com o byte count.`;
+    }
+
+    const sum = bytes.reduce((acc, b) => acc + b, 0) & 0xff;
+    if (sum !== 0) return `linha ${lineNo}: checksum inválido.`;
+
+    const recordType = bytes[3];
+    if (recordType === 0) dataRecords++;
+    if (recordType === 1) {
+      hasEof = true;
+      break;
+    }
+  }
+
+  if (dataRecords === 0) return 'nenhum registro de dados encontrado.';
+  if (!hasEof) return "registro de fim de arquivo (':00000001FF') ausente.";
+  return null;
+}
+
+/**
+ * Converte um Intel HEX na imagem de memória de programa (words little-endian)
+ * aceita pelo construtor `CPU` do AVR8js.
+ */
+export function hexToProgramWords(
+  hexString: string,
+  flashWords: number = ATMEGA328P_FLASH_WORDS
+): Uint16Array {
+  const program = new Uint16Array(flashWords);
+  parseIntelHex(hexString, new Uint8Array(program.buffer));
+  return program;
 }

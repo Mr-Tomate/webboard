@@ -11,6 +11,8 @@ import { CodeWorkspacePanel } from './components/editor/CodeWorkspacePanel.js';
 import { PanopticDashboard } from './components/dashboard/PanopticDashboard.js';
 import { SubmissionResultModal } from './components/ui/SubmissionResultModal.js';
 import { WebboardApiClient } from './api/client.js';
+import { CompilerClient } from './api/compiler-client.js';
+import { buildFirmware } from './emulator/firmware-pipeline.js';
 import type { SupportedLanguage } from './components/editor/CodeEditor.js';
 import {
   type SerialMessage,
@@ -73,6 +75,8 @@ export function App() {
 
   // Cliente de API Backend
   const apiClient = useMemo(() => new WebboardApiClient(), []);
+  const compilerClient = useMemo(() => new CompilerClient(), []);
+  const [isCompiling, setIsCompiling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
@@ -241,15 +245,44 @@ export function App() {
     }
   }, []);
 
-  const handleStartSimulation = useCallback(() => {
-    if (isMirrorMode) return;
+  const handleStartSimulation = useCallback(async () => {
+    if (isMirrorMode || isCompiling) return;
 
-    setCompilationAttempts((prev) => prev + 1);
+    let program: Uint16Array | undefined;
+
+    if (language === 'CPP') {
+      setCompilationAttempts((prev) => prev + 1);
+      setIsCompiling(true);
+      const result = await buildFirmware(compilerClient, cppCode).finally(() =>
+        setIsCompiling(false)
+      );
+
+      setSerialMessages((prev) =>
+        result.logs.reduce(
+          (buf, log) => appendToSerialBuffer(buf, createSerialMessage(log.text, log.level)),
+          prev
+        )
+      );
+
+      // RN-COD-01: compilação reprovada nunca energiza a bancada
+      if (!result.ok) return;
+      program = result.program;
+    } else {
+      setSerialMessages((prev) =>
+        appendToSerialBuffer(
+          prev,
+          createSerialMessage(
+            '[PYFIRMATA] Runtime Python ainda não integrado: executando firmware de demonstração.',
+            'SYSTEM'
+          )
+        )
+      );
+    }
 
     const ok = startSimulation();
     if (!ok) return;
 
-    const board = new AVRBoard();
+    const board = new AVRBoard(program);
     avrBoardRef.current = board;
 
     board.onSerialOutput((line) => {
@@ -268,7 +301,15 @@ export function App() {
         createSerialMessage('[SISTEMA] CPU ATmega328P emulando a 16MHz via AVR8js.', 'SYSTEM')
       )
     );
-  }, [startSimulation, handleEmulatorPinChange, isMirrorMode]);
+  }, [
+    startSimulation,
+    handleEmulatorPinChange,
+    isMirrorMode,
+    isCompiling,
+    language,
+    cppCode,
+    compilerClient
+  ]);
 
   const handleStopSimulation = useCallback(() => {
     if (avrBoardRef.current) {
@@ -437,6 +478,7 @@ export function App() {
         isMirrorMode={isMirrorMode}
         isSaving={isSaving}
         isSubmitting={isSubmitting}
+        isCompiling={isCompiling}
         onSelectWireColor={handleSelectWireColor}
         onToggleCodePanel={() => setIsCodePanelOpen(!isCodePanelOpen)}
         onToggleView={() =>
@@ -505,7 +547,7 @@ export function App() {
             onToggle={() => setIsCodePanelOpen(!isCodePanelOpen)}
             language={language}
             code={language === 'CPP' ? cppCode : pythonCode}
-            isReadOnly={mode === 'MODO_SIMULACAO' || isMirrorMode}
+            isReadOnly={mode === 'MODO_SIMULACAO' || isMirrorMode || isCompiling}
             onCodeChange={(val) => {
               if (isMirrorMode) return;
               if (language === 'CPP') setCppCode(val ?? '');

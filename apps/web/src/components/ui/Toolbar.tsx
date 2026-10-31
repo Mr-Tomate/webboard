@@ -34,6 +34,7 @@ interface ToolbarProps {
   isMirrorMode?: boolean;
   isSaving?: boolean;
   isSubmitting?: boolean;
+  isCompiling?: boolean;
   onSelectWireColor: (color: WireColor) => void;
   onToggleCodePanel: () => void;
   onToggleView: () => void;
@@ -61,6 +62,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isMirrorMode = false,
   isSaving = false,
   isSubmitting = false,
+  isCompiling = false,
   onSelectWireColor,
   onToggleCodePanel,
   onToggleView,
@@ -159,11 +161,16 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             {!isSimulating ? (
               <button
                 onClick={onStartSimulation}
-                disabled={isMirrorMode}
+                disabled={isMirrorMode || isCompiling}
+                title={isCompiling ? 'Compilando sketch.ino no servidor...' : 'Compilar o código e energizar a bancada'}
                 className="flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-xs tracking-wide bg-[#00e599] hover:bg-[#00c985] disabled:opacity-40 text-black transition-all shadow-md active:translate-y-0.5 cursor-pointer disabled:cursor-not-allowed"
               >
-                <Play className="w-4 h-4 fill-black" />
-                <span>ENERGIZAR BANCADA</span>
+                {isCompiling ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4 fill-black" />
+                )}
+                <span>{isCompiling ? 'COMPILANDO...' : 'ENERGIZAR BANCADA'}</span>
               </button>
             ) : (
               <button
