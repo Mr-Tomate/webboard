@@ -49,6 +49,45 @@ export interface ClassroomTelemetrySummary {
 
 export type WebSocketRole = 'student' | 'teacher';
 
+// -------------------------------------------------------------
+// EIXO D: COLABORAÇÃO CONCORRENTE NO WORKSPACE DE GRUPO
+// -------------------------------------------------------------
+// Regra de identidade: workspaceId, userId e userName são SEMPRE derivados
+// da conexão (querystring do handshake). Campos homônimos enviados no payload
+// pelo cliente são opcionais e ignorados pelo servidor (anti-spoofing / IDOR).
+
+export const CIRCUIT_MUTATION_ACTIONS = [
+  'ADD_COMPONENT',
+  'UPDATE_COMPONENT',
+  'REMOVE_COMPONENT',
+  'ADD_WIRE',
+  'REMOVE_WIRE',
+] as const;
+
+export type CircuitMutationAction = (typeof CIRCUIT_MUTATION_ACTIONS)[number];
+
+export interface ComponentLock {
+  workspaceId: string;
+  componentId: string;
+  userId: string;
+  userName: string;
+  lockedAt: string;
+}
+
+export interface RemoteCursor {
+  workspaceId: string;
+  userId: string;
+  userName: string;
+  position: { x: number; y: number };
+}
+
+export interface PresenceMember {
+  userId: string;
+  userName: string;
+  /** Quantidade de abas/conexões abertas pelo mesmo usuário no workspace. */
+  connections: number;
+}
+
 export type ClientToServerMessage =
   | { type: 'PULSE'; payload: StudentWorkspacePulse }
   | {
@@ -68,6 +107,45 @@ export type ClientToServerMessage =
         author: string;
         text: string;
         targetComponentId?: string;
+      };
+    }
+  | {
+      type: 'LOCK_COMPONENT';
+      payload: {
+        componentId: string;
+        /** Ignorado pelo servidor (identidade vem do handshake). */
+        workspaceId?: string;
+        userId?: string;
+        userName?: string;
+      };
+    }
+  | {
+      type: 'UNLOCK_COMPONENT';
+      payload: {
+        componentId: string;
+        /** Ignorado pelo servidor (identidade vem do handshake). */
+        workspaceId?: string;
+        userId?: string;
+      };
+    }
+  | {
+      type: 'CURSOR_MOVE';
+      payload: {
+        position: { x: number; y: number };
+        /** Ignorado pelo servidor (identidade vem do handshake). */
+        workspaceId?: string;
+        userId?: string;
+        userName?: string;
+      };
+    }
+  | {
+      type: 'CIRCUIT_MUTATION';
+      payload: {
+        action: CircuitMutationAction;
+        data: unknown;
+        /** Ignorado pelo servidor (identidade vem do handshake). */
+        workspaceId?: string;
+        userId?: string;
       };
     };
 
@@ -104,6 +182,67 @@ export type ServerToClientMessage =
       payload: {
         workspaceId: string;
         note: PedagogicalNote;
+      };
+    }
+  | {
+      type: 'COMPONENT_LOCKED';
+      payload: ComponentLock;
+    }
+  | {
+      type: 'COMPONENT_UNLOCKED';
+      payload: {
+        workspaceId: string;
+        componentId: string;
+      };
+    }
+  | {
+      type: 'LOCK_REJECTED';
+      payload: {
+        workspaceId: string;
+        componentId: string;
+        reason: string;
+      };
+    }
+  | {
+      type: 'CURSOR_MOVED';
+      payload: RemoteCursor;
+    }
+  | {
+      type: 'CIRCUIT_MUTATED';
+      payload: {
+        workspaceId: string;
+        userId: string;
+        userName: string;
+        action: CircuitMutationAction;
+        data: unknown;
+      };
+    }
+  | {
+      type: 'WORKSPACE_LOCKS_SNAPSHOT';
+      payload: {
+        workspaceId: string;
+        locks: ComponentLock[];
+      };
+    }
+  | {
+      type: 'PRESENCE_SNAPSHOT';
+      payload: {
+        workspaceId: string;
+        members: PresenceMember[];
+      };
+    }
+  | {
+      type: 'MEMBER_JOINED';
+      payload: {
+        workspaceId: string;
+        member: PresenceMember;
+      };
+    }
+  | {
+      type: 'MEMBER_LEFT';
+      payload: {
+        workspaceId: string;
+        userId: string;
       };
     }
   | {

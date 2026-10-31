@@ -14,20 +14,27 @@ export const telemetryRoutes: FastifyPluginAsync<TelemetryRoutesOptions> = async
   const { roomManager } = opts;
 
   // -------------------------------------------------------------
-  // CANAL WEBSOCKET TEMPO REAL
+  // CANAL WEBSOCKET TEMPO REAL (TELEMETRIA & COLABORAÇÃO CONCORRENTE)
   // -------------------------------------------------------------
   fastify.get<{
     Querystring: {
       role?: 'student' | 'teacher';
       classroomId?: string;
       workspaceId?: string;
+      userId?: string;
+      userName?: string;
     };
   }>(
     '/ws/telemetry',
     { websocket: true },
     (socket: WebSocket, req) => {
-      const { role = 'student', classroomId = 'default_classroom', workspaceId } =
-        req.query;
+      const {
+        role = 'student',
+        classroomId = 'default_classroom',
+        workspaceId,
+        userId,
+        userName,
+      } = req.query;
 
       if (role === 'teacher') {
         roomManager.registerTeacher(socket, classroomId);
@@ -42,12 +49,13 @@ export const telemetryRoutes: FastifyPluginAsync<TelemetryRoutesOptions> = async
           socket.close(1008, 'Missing workspaceId');
           return;
         }
-        roomManager.registerStudent(socket, workspaceId, classroomId);
+        roomManager.registerStudent(socket, workspaceId, classroomId, userId, userName);
       }
 
       socket.on('message', (raw: Buffer | string) => {
         try {
           const msg = JSON.parse(raw.toString()) as ClientToServerMessage;
+
           if (msg.type === 'PULSE') {
             roomManager.processPulse({
               ...msg.payload,
@@ -66,6 +74,15 @@ export const telemetryRoutes: FastifyPluginAsync<TelemetryRoutesOptions> = async
               text: msg.payload.text,
               targetComponentId: msg.payload.targetComponentId,
             });
+          } else if (msg.type === 'LOCK_COMPONENT') {
+            // Identidade (workspace/usuário) vem do handshake, nunca do payload
+            roomManager.lockComponent(socket, msg.payload?.componentId);
+          } else if (msg.type === 'UNLOCK_COMPONENT') {
+            roomManager.unlockComponent(socket, msg.payload?.componentId);
+          } else if (msg.type === 'CURSOR_MOVE') {
+            roomManager.broadcastCursor(socket, msg.payload?.position);
+          } else if (msg.type === 'CIRCUIT_MUTATION') {
+            roomManager.broadcastMutation(socket, msg.payload?.action, msg.payload?.data);
           }
         } catch (err: any) {
           socket.send(
@@ -157,4 +174,24 @@ export const telemetryRoutes: FastifyPluginAsync<TelemetryRoutesOptions> = async
       note,
     });
   });
+
+  // Obter locks ativos do workspace (para sincronização inicial de interface)
+  fastify.get<{ Params: { workspaceId: string } }>(
+    '/api/workspaces/:workspaceId/locks',
+    async (request, reply) => {
+      const { workspaceId } = request.params;
+      const locks = roomManager.getWorkspaceLocks(workspaceId);
+      return reply.send({ workspaceId, locks });
+    }
+  );
+
+  // Obter membros presentes no workspace de grupo (fallback REST da presença)
+  fastify.get<{ Params: { workspaceId: string } }>(
+    '/api/workspaces/:workspaceId/presence',
+    async (request, reply) => {
+      const { workspaceId } = request.params;
+      const members = roomManager.getWorkspacePresence(workspaceId);
+      return reply.send({ workspaceId, members });
+    }
+  );
 };
