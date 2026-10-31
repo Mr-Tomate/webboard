@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { WireColor, CircuitDefinition, EvaluationResult } from '@webboard/contracts';
+import type { WireColor, CircuitDefinition, EvaluationResult, ChallengeDefinition } from '@webboard/contracts';
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
 import { useTelemetrySocket } from './hooks/useTelemetrySocket.js';
@@ -10,7 +10,7 @@ import { StatusBar } from './components/ui/StatusBar.js';
 import { CodeWorkspacePanel } from './components/editor/CodeWorkspacePanel.js';
 import { PanopticDashboard } from './components/dashboard/PanopticDashboard.js';
 import { SubmissionResultModal } from './components/ui/SubmissionResultModal.js';
-import { WebboardApiClient } from './api/client.js';
+import { WebboardApiClient, type ChallengeListItem } from './api/client.js';
 import { CompilerClient } from './api/compiler-client.js';
 import { buildFirmware } from './emulator/firmware-pipeline.js';
 import type { SupportedLanguage } from './components/editor/CodeEditor.js';
@@ -53,7 +53,8 @@ export function App() {
     addComponent,
     clearWorkbench,
     cancelWireDrag,
-    handleEmulatorPinChange
+    handleEmulatorPinChange,
+    loadFromCircuit
   } = workbenchHook;
 
   const {
@@ -80,6 +81,11 @@ export function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+
+  // Desafios e Kit Policy
+  const [challenges, setChallenges] = useState<ChallengeListItem[]>([]);
+  const [activeChallengeId, setActiveChallengeId] = useState<string>('ch_desafio_blink_01');
+  const [activeChallenge, setActiveChallenge] = useState<ChallengeDefinition | null>(null);
 
   // Estado do Editor de Código & Console Serial
   const [isCodePanelOpen, setIsCodePanelOpen] = useState(true);
@@ -112,6 +118,82 @@ export function App() {
     SAMPLE_CLASSROOM_WORKSPACES
   );
 
+  // Inicialização e sincronização com a API (Ponto 3: Catálogo de Desafios, Ponto 4: Restauração de Workspace)
+  useEffect(() => {
+    let mounted = true;
+
+    async function initializeBootData() {
+      // 1. Busca Catálogo de Desafios
+      try {
+        const challengeList = await apiClient.getChallenges();
+        if (mounted && challengeList && challengeList.length > 0) {
+          setChallenges(challengeList);
+          const initialId = challengeList[0].id;
+          setActiveChallengeId(initialId);
+          const challengeDetail = await apiClient.getChallenge(initialId).catch(() => null);
+          if (mounted && challengeDetail) {
+            setActiveChallenge(challengeDetail);
+          }
+        }
+      } catch (err) {
+        console.warn('API de Desafios offline, operando com catálogo padrão:', err);
+      }
+
+      // 2. Restaura Workspace do Aluno (Circuito e Código)
+      try {
+        const ws = await apiClient.getWorkspace('ws_aluno_01');
+        if (mounted && ws) {
+          if (ws.circuit && ws.circuit.components && ws.circuit.components.length > 0) {
+            loadFromCircuit(ws.circuit);
+          }
+          if (ws.codeText) {
+            if (ws.language === 'PYTHON') {
+              setPythonCode(ws.codeText);
+              setLanguage('PYTHON');
+            } else {
+              setCppCode(ws.codeText);
+              setLanguage('CPP');
+            }
+          }
+          setSerialMessages((prev) =>
+            appendToSerialBuffer(
+              prev,
+              createSerialMessage(`[BOOT] Workspace "${ws.name}" restaurado com sucesso.`, 'SYSTEM')
+            )
+          );
+        }
+      } catch (err) {
+        console.warn('Workspace remoto indisponível ou offline:', err);
+      }
+    }
+
+    initializeBootData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [apiClient, loadFromCircuit]);
+
+  // Troca de desafio ativo
+  const handleSelectChallenge = useCallback(
+    async (challengeId: string) => {
+      setActiveChallengeId(challengeId);
+      try {
+        const detail = await apiClient.getChallenge(challengeId);
+        setActiveChallenge(detail);
+        setSerialMessages((prev) =>
+          appendToSerialBuffer(
+            prev,
+            createSerialMessage(`[DESAFIO] Selecionado: "${detail.title}".`, 'SYSTEM')
+          )
+        );
+      } catch (err) {
+        console.warn(`Erro ao carregar detalhes do desafio ${challengeId}:`, err);
+      }
+    },
+    [apiClient]
+  );
+
   // Pulso periódico e reativo de telemetria da bancada do aluno
   useEffect(() => {
     if (currentView !== 'STUDENT_BENCH' || isMirrorMode) return;
@@ -135,7 +217,7 @@ export function App() {
       students: ['Aluno Webboard'],
       status,
       lastActivitySecondsAgo: 0,
-      currentChallengeTitle: 'Desafio 01: Circuito de Sinalização com LED',
+      currentChallengeTitle: activeChallenge?.title ?? 'Desafio 01: Circuito de Sinalização com LED',
       circuitMetrics: {
         componentCount: components.length,
         wireCount: wires.length,
@@ -162,7 +244,8 @@ export function App() {
     currentView,
     isMirrorMode,
     sendPulse,
-    incomingNotes
+    incomingNotes,
+    activeChallenge
   ]);
 
   // Se a bancada entrar em ESTADO_FALHA_ENG, dispara alerta crítico para o professor via WebSocket
@@ -333,8 +416,8 @@ export function App() {
     const circuitPayload: CircuitDefinition = {
       schemaVersion: '1.0.0',
       circuitId: 'ckt_workbench_01',
-      components,
-      wires
+      components: [...components],
+      wires: [...wires]
     };
 
     try {
@@ -362,7 +445,7 @@ export function App() {
     }
   };
 
-  // Submissão de Desafio e Auto-Grading
+  // Submissão de Desafio e Auto-Grading (Ponto 2: AutoGrader Oficial da API)
   const handleSubmitChallenge = async () => {
     if (isMirrorMode || isSubmitting) return;
     setIsSubmitting(true);
@@ -370,15 +453,16 @@ export function App() {
     const circuitPayload: CircuitDefinition = {
       schemaVersion: '1.0.0',
       circuitId: 'ckt_workbench_01',
-      components,
-      wires
+      components: [...components],
+      wires: [...wires]
     };
 
+    // Fallback formativo local caso o backend não esteja disponível
     const hasLed = components.some((c) => c.type === 'LED');
     const hasWires = wires.length >= 1;
     const isApproved = hasLed && hasWires && !fault;
 
-    const evalResult: EvaluationResult = {
+    const localFallbackEvalResult: EvaluationResult = {
       status: isApproved ? 'APPROVED' : 'FAILED',
       totalExecutionVirtualSeconds: 2.0,
       summary: {
@@ -406,33 +490,38 @@ export function App() {
       ]
     };
 
+    let finalEvalResult: EvaluationResult = localFallbackEvalResult;
+
     try {
-      await apiClient.submitChallenge('ws_aluno_01', {
-        challengeId: 'ch_desafio_blink_01',
+      const response = await apiClient.submitChallenge('ws_aluno_01', {
+        challengeId: activeChallengeId || 'ch_desafio_blink_01',
         userId: 'usr_aluno_01',
         circuit: circuitPayload,
         codeText: language === 'CPP' ? cppCode : pythonCode,
-        language,
-        status: isApproved ? 'APPROVED' : 'FAILED',
-        evaluation: evalResult
+        language
       });
+
+      if (response && response.evaluation) {
+        finalEvalResult = response.evaluation;
+      }
+
       setSerialMessages((prev) =>
         appendToSerialBuffer(
           prev,
-          createSerialMessage(`[SUBMISSÃO] Snapshot registrado com sucesso. Status: ${evalResult.status}`, 'SYSTEM')
+          createSerialMessage(`[SUBMISSÃO OFICIAL] Avaliação oficial concluída: ${finalEvalResult.status}.`, 'SYSTEM')
         )
       );
     } catch {
-      // Continua exibindo a avaliação formativa local mesmo sem API online
+      // Continua exibindo a avaliação formativa local caso o backend esteja offline
       setSerialMessages((prev) =>
         appendToSerialBuffer(
           prev,
-          createSerialMessage(`[AVALIAÇÃO] Relatório gerado localmente. Status: ${evalResult.status}`, 'SYSTEM')
+          createSerialMessage(`[AVALIAÇÃO OFFLINE] Suíte remota indisponível. Avaliação local: ${localFallbackEvalResult.status}.`, 'SYSTEM')
         )
       );
     } finally {
       setIsSubmitting(false);
-      setEvaluationResult(evalResult);
+      setEvaluationResult(finalEvalResult);
     }
   };
 
@@ -479,6 +568,9 @@ export function App() {
         isSaving={isSaving}
         isSubmitting={isSubmitting}
         isCompiling={isCompiling}
+        challenges={challenges}
+        activeChallengeId={activeChallengeId}
+        onSelectChallenge={handleSelectChallenge}
         onSelectWireColor={handleSelectWireColor}
         onToggleCodePanel={() => setIsCodePanelOpen(!isCodePanelOpen)}
         onToggleView={() =>
@@ -527,10 +619,12 @@ export function App() {
             </div>
           )}
 
-          {/* Catálogo Lateral de Componentes */}
+          {/* Catálogo Lateral de Componentes com Suporte a KitPolicy */}
           {!isMirrorMode && (
             <CatalogSidebar
               mode={mode}
+              kitPolicy={activeChallenge?.kitPolicy}
+              currentComponents={components}
               onAddComponent={handleAddComponentAtCenter}
             />
           )}
@@ -572,7 +666,7 @@ export function App() {
           {/* Modal de Avaliação / Auto-Grading */}
           <SubmissionResultModal
             evaluation={evaluationResult}
-            challengeTitle="Desafio 01: Circuito de Sinalização com LED"
+            challengeTitle={activeChallenge?.title ?? "Desafio 01: Circuito de Sinalização com LED"}
             onClose={() => setEvaluationResult(null)}
           />
         </>

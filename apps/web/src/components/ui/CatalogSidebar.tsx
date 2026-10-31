@@ -7,18 +7,23 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Lock
+  Lock,
+  Ban
 } from 'lucide-react';
 import { COMPONENT_CATALOG } from '../../catalog/manifests.js';
-import type { WorkbenchMode } from '@webboard/contracts';
+import type { WorkbenchMode, KitPolicy, ComponentDefinition } from '@webboard/contracts';
 
 interface CatalogSidebarProps {
   mode: WorkbenchMode;
+  kitPolicy?: KitPolicy | null;
+  currentComponents?: readonly ComponentDefinition[];
   onAddComponent: (type: string) => void;
 }
 
 export const CatalogSidebar: React.FC<CatalogSidebarProps> = ({
   mode,
+  kitPolicy,
+  currentComponents = [],
   onAddComponent
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -59,6 +64,14 @@ export const CatalogSidebar: React.FC<CatalogSidebarProps> = ({
                 <Lock className="w-3.5 h-3.5 text-amber-400" />
               </span>
             )}
+            {kitPolicy?.mode === 'RESTRICTED_BOM' && (
+              <span
+                className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                title="Kit de Peças Restrito pelo Desafio (RN-DES-01)"
+              >
+                Kit Restrito
+              </span>
+            )}
           </div>
         )}
         <button
@@ -73,39 +86,75 @@ export const CatalogSidebar: React.FC<CatalogSidebarProps> = ({
       {/* Component List */}
       {!isCollapsed && (
         <div className="overflow-y-auto p-2 space-y-1.5 flex-1">
-          {componentsList.map((comp) => (
-            <div
-              key={comp.id}
-              onClick={() => !isSimulating && onAddComponent(comp.id)}
-              className={`p-2.5 rounded-lg border transition-all flex items-center justify-between ${
-                isSimulating
-                  ? 'opacity-40 border-transparent bg-[#161619] cursor-not-allowed'
-                  : 'border-[#26262c] bg-[#202025] hover:border-[#00e599]/60 hover:bg-[#25252b] cursor-pointer group'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="p-1.5 rounded-md bg-[#161619] border border-[#2e2e34]">
-                  {getCategoryIcon(comp.category)}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-medium text-[#f4f4f5] truncate group-hover:text-[#00e599] transition-colors">
-                    {comp.name}
-                  </div>
-                  <div className="text-[10px] text-[#71717a] flex items-center gap-1.5">
-                    <span>{comp.category}</span>
-                    <span>•</span>
-                    <span>{comp.pins.length} pinos</span>
-                  </div>
-                </div>
-              </div>
+          {componentsList.map((comp) => {
+            let isRestrictedByKit = false;
+            let restrictionReason = '';
+            let quotaBadge: string | null = null;
 
-              {!isSimulating && (
-                <div className="opacity-0 group-hover:opacity-100 p-1 rounded bg-[#00e599]/10 text-[#00e599] transition-opacity">
-                  <Plus className="w-3.5 h-3.5" />
+            if (kitPolicy && kitPolicy.mode === 'RESTRICTED_BOM') {
+              const rule = kitPolicy.allowedComponents.find((a) => a.type === comp.id);
+              if (!rule) {
+                isRestrictedByKit = true;
+                restrictionReason = 'Não permitido neste desafio';
+              } else {
+                const currentCount = currentComponents.filter((c) => c.type === comp.id).length;
+                quotaBadge = `${currentCount}/${rule.maxQuantity}`;
+                if (currentCount >= rule.maxQuantity) {
+                  isRestrictedByKit = true;
+                  restrictionReason = `Limite do desafio atingido (${quotaBadge})`;
+                }
+              }
+            }
+
+            const isDisabled = isSimulating || isRestrictedByKit;
+
+            return (
+              <div
+                key={comp.id}
+                onClick={() => !isDisabled && onAddComponent(comp.id)}
+                title={restrictionReason || (isSimulating ? 'Bloqueado em simulação' : undefined)}
+                className={`p-2.5 rounded-lg border transition-all flex items-center justify-between ${
+                  isDisabled
+                    ? 'opacity-40 border-transparent bg-[#161619] cursor-not-allowed'
+                    : 'border-[#26262c] bg-[#202025] hover:border-[#00e599]/60 hover:bg-[#25252b] cursor-pointer group'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="p-1.5 rounded-md bg-[#161619] border border-[#2e2e34]">
+                    {getCategoryIcon(comp.category)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-medium text-[#f4f4f5] truncate group-hover:text-[#00e599] transition-colors flex items-center gap-1.5">
+                      <span>{comp.name}</span>
+                      {quotaBadge && (
+                        <span className={`text-[10px] font-mono px-1 rounded ${
+                          isRestrictedByKit ? 'bg-rose-950/60 text-rose-300' : 'bg-zinc-800 text-zinc-300'
+                        }`}>
+                          {quotaBadge}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-[#71717a] flex items-center gap-1.5">
+                      <span>{comp.category}</span>
+                      <span>•</span>
+                      <span>{comp.pins.length} pinos</span>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {!isDisabled && (
+                  <div className="opacity-0 group-hover:opacity-100 p-1 rounded bg-[#00e599]/10 text-[#00e599] transition-opacity">
+                    <Plus className="w-3.5 h-3.5" />
+                  </div>
+                )}
+                {isRestrictedByKit && (
+                  <div className="p-1 text-zinc-500" title={restrictionReason}>
+                    <Ban className="w-3.5 h-3.5 text-zinc-500" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </aside>

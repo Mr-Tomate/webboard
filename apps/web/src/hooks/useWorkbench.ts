@@ -215,6 +215,15 @@ export function useWorkbench() {
     sceneGraph.clear();
   }, [engine, sceneGraph, mode]);
 
+  const loadFromCircuit = useCallback(
+    (circuit: CircuitDefinition) => {
+      if (mode !== 'MODO_EDICAO') return;
+      engine.stopSimulation();
+      sceneGraph.loadFromCircuit(circuit);
+    },
+    [engine, sceneGraph, mode]
+  );
+
   const handleEmulatorPinChange = useCallback(
     (pinName: string, level: 'HIGH' | 'LOW') => {
       engine.handlePinOutputChange('mcu_uno_01', pinName, level);
@@ -255,6 +264,7 @@ export function useWorkbench() {
     handleEmulatorPinChange,
     startSimulation,
     stopSimulation,
-    clearWorkbench
+    clearWorkbench,
+    loadFromCircuit
   };
 }

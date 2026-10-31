@@ -2,7 +2,8 @@ import type {
   CircuitDefinition,
   SubmissionSnapshot,
   EvaluationResult,
-  EvaluationStatus
+  EvaluationStatus,
+  ChallengeDefinition
 } from '@webboard/contracts';
 
 export interface WorkspaceResponse {
@@ -23,13 +24,25 @@ export interface WorkspaceResponse {
   updatedAt: string;
 }
 
-export interface SubmissionResponse {
-  id: string;
+export interface SubmissionHistoryItem {
+  submissionId: string;
   workspaceId: string;
   challengeId: string;
   versionNumber: number;
   status: EvaluationStatus;
-  snapshot: SubmissionSnapshot;
+  submittedBy: {
+    userId: string;
+    name: string;
+  };
+  submittedAt: string;
+  evaluation: EvaluationResult;
+}
+
+export interface ChallengeListItem {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   createdAt: string;
 }
 
@@ -79,7 +92,7 @@ export class WebboardApiClient {
       status?: EvaluationStatus;
       evaluation?: EvaluationResult;
     }
-  ): Promise<SubmissionResponse> {
+  ): Promise<SubmissionSnapshot> {
     const res = await fetch(`${this.baseUrl}/api/workspaces/${workspaceId}/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -91,10 +104,26 @@ export class WebboardApiClient {
     return res.json();
   }
 
-  public async getSubmissions(workspaceId: string): Promise<SubmissionResponse[]> {
+  public async getSubmissions(workspaceId: string): Promise<SubmissionHistoryItem[]> {
     const res = await fetch(`${this.baseUrl}/api/workspaces/${workspaceId}/submissions`);
     if (!res.ok) {
       throw new Error(`Erro ao listar submissões: HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  public async getChallenges(): Promise<ChallengeListItem[]> {
+    const res = await fetch(`${this.baseUrl}/api/challenges`);
+    if (!res.ok) {
+      throw new Error(`Erro ao listar desafios: HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  public async getChallenge(challengeId: string): Promise<ChallengeDefinition> {
+    const res = await fetch(`${this.baseUrl}/api/challenges/${challengeId}`);
+    if (!res.ok) {
+      throw new Error(`Erro ao buscar desafio: HTTP ${res.status}`);
     }
     return res.json();
   }

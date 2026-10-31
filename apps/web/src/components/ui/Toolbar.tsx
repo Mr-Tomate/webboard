@@ -15,10 +15,12 @@ import {
   Eye,
   Save,
   Send,
-  Loader2
+  Loader2,
+  Trophy
 } from 'lucide-react';
 import type { WorkbenchMode, WorkbenchFaultPayload, WireColor } from '@webboard/contracts';
 import { WireColorPalette } from './WireColorPalette.js';
+import type { ChallengeListItem } from '../../api/client.js';
 
 export type ActiveAppView = 'STUDENT_BENCH' | 'TEACHER_DASHBOARD';
 
@@ -35,6 +37,9 @@ interface ToolbarProps {
   isSaving?: boolean;
   isSubmitting?: boolean;
   isCompiling?: boolean;
+  challenges?: ChallengeListItem[];
+  activeChallengeId?: string;
+  onSelectChallenge?: (challengeId: string) => void;
   onSelectWireColor: (color: WireColor) => void;
   onToggleCodePanel: () => void;
   onToggleView: () => void;
@@ -63,6 +68,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isSaving = false,
   isSubmitting = false,
   isCompiling = false,
+  challenges,
+  activeChallengeId,
+  onSelectChallenge,
   onSelectWireColor,
   onToggleCodePanel,
   onToggleView,
@@ -144,6 +152,28 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             )}
           </div>
         )}
+
+        {/* Seletor de Desafio Dinâmico */}
+        {currentView === 'STUDENT_BENCH' && challenges && challenges.length > 0 && (
+          <>
+            <div className="h-4 w-px bg-[#2e2e34]" />
+            <div className="flex items-center gap-1.5">
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <select
+                value={activeChallengeId || ''}
+                onChange={(e) => onSelectChallenge?.(e.target.value)}
+                disabled={isSimulating || isMirrorMode}
+                className="bg-[#242429] text-zinc-200 text-xs font-semibold px-2 py-1 rounded border border-[#3f3f46] hover:border-zinc-400 focus:outline-none focus:border-[#00e599] cursor-pointer max-w-[200px] truncate"
+              >
+                {challenges.map((ch) => (
+                  <option key={ch.id} value={ch.id}>
+                    {ch.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Center Controls (Visible in Student Bench mode) */}
@@ -199,7 +229,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <button
               onClick={onSubmitChallenge}
               disabled={isMirrorMode || isSubmitting}
-              title="Submeter snapshot para auto-avaliação"
+              title="Submeter snapshot para auto-avaliação oficial"
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white transition-colors cursor-pointer text-xs font-bold disabled:opacity-40"
             >
               {isSubmitting ? (
