@@ -14,7 +14,9 @@ interface ComponentNodeProps {
   isConnectingWire: boolean;
   highlightedPinKeys: Set<string>;
   electricalState?: ComponentElectricalState;
+  lockedBy?: { userId: string; userName: string; lockedAt: string };
   onSelect: (componentId: string) => void;
+  onDragStart?: (componentId: string) => void;
   onDragEnd: (componentId: string, newPos: Position2D) => void;
   onStartWire: (componentId: string, pinId: string, worldPos: Position2D) => void;
   onFinishWire: (componentId: string, pinId: string) => void;
@@ -27,6 +29,9 @@ interface ComponentNodeProps {
  *
  * Mapeia os dados do manifesto (dimensões e âncoras de pinos) e desenha o corpo
  * e detalhes serigráficos de forma síncrona com aceleração de hardware 60 FPS.
+ *
+ * Suporta Soft-Locking Colaborativo (Eixo D): quando outro usuário manipula a peça,
+ * exibe contorno azul com etiqueta flutuante e bloqueia o arrasto local.
  */
 export const ComponentNode: React.FC<ComponentNodeProps> = ({
   component,
@@ -35,7 +40,9 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   isConnectingWire,
   highlightedPinKeys,
   electricalState,
+  lockedBy,
   onSelect,
+  onDragStart,
   onDragEnd,
   onStartWire,
   onFinishWire,
@@ -47,7 +54,8 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   const height = manifest?.dimensions.height ?? 80;
 
   const isSimulating = mode === 'MODO_SIMULACAO';
-  const canDrag = !isSimulating && !component.isLocked;
+  const isLockedByPeer = !!lockedBy;
+  const canDrag = !isSimulating && !component.isLocked && !isLockedByPeer;
 
   const isLedActive = electricalState?.visualState === 'active';
   const isDestroyed = electricalState?.visualState === 'destroyed' || electricalState?.isDestroyed;
@@ -98,12 +106,22 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         return '#27272a';
       case 'SENSOR':
         return '#1b3a32';
-      case 'INPUT':
-        return '#26262b';
       default:
-        return '#1f2023';
+        return '#18181b';
     }
   };
+
+  const strokeColor = isDestroyed
+    ? '#ef4444'
+    : isLockedByPeer
+    ? '#0284c7'
+    : isSelected
+    ? '#00e599'
+    : isBreadboard
+    ? '#52525b'
+    : '#3f3f46';
+
+  const strokeWidth = isLockedByPeer ? 3 : isSelected || isDestroyed ? 2.5 : isBreadboard ? 2 : 1.5;
 
   return (
     <Group
@@ -112,7 +130,7 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
       draggable={canDrag}
       onMouseEnter={(e) => {
         const stage = e.target.getStage();
-        if (stage) stage.container().style.cursor = canDrag ? 'move' : 'pointer';
+        if (stage) stage.container().style.cursor = isLockedByPeer ? 'not-allowed' : canDrag ? 'move' : 'pointer';
       }}
       onMouseLeave={(e) => {
         const stage = e.target.getStage();
@@ -125,6 +143,9 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
       onTap={(e) => {
         e.cancelBubble = true;
         onSelect(component.id);
+      }}
+      onDragStart={() => {
+        onDragStart?.(component.id);
       }}
       onDragMove={(e) => {
         // Atualiza a posição em tempo real para os fios conectados acompanharem a 60 FPS
@@ -153,10 +174,37 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         width={width}
         height={height}
         fill={getThemeColor()}
-        stroke={isDestroyed ? '#ef4444' : isSelected ? '#00e599' : isBreadboard ? '#52525b' : '#3f3f46'}
-        strokeWidth={isSelected || isDestroyed ? 2.5 : isBreadboard ? 2 : 1.5}
+        stroke={strokeColor}
+        strokeWidth={strokeWidth}
         cornerRadius={isBreadboard ? 8 : 4}
       />
+
+      {/* ========================================================
+          ETIQUETA FLUTUANTE DE SOFT-LOCK COLABORATIVO (EIXO D)
+          ======================================================== */}
+      {isLockedByPeer && lockedBy && (
+        <Group x={0} y={-24} listening={false}>
+          <Rect
+            x={0}
+            y={0}
+            width={Math.max(110, (lockedBy.userName.length + 11) * 7.5)}
+            height={20}
+            fill="#0284c7"
+            stroke="#09090b"
+            strokeWidth={1.5}
+            cornerRadius={4}
+          />
+          <Text
+            text={`🔒 ${lockedBy.userName} movendo...`}
+            fontSize={10}
+            fontFamily="sans-serif"
+            fontStyle="bold"
+            fill="#ffffff"
+            x={6}
+            y={4}
+          />
+        </Group>
+      )}
 
       {/* ========================================================
           DETALHES VETORIAIS ESPECÍFICOS POR COMPONENTE

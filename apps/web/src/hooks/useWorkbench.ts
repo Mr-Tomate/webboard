@@ -12,6 +12,7 @@ import type { ComponentElectricalState, NetlistResult } from '@webboard/core';
 import { WorkbenchEngine } from '../engine/WorkbenchEngine.ts';
 import { WorkbenchSceneGraph } from '../engine/WorkbenchSceneGraph.ts';
 import type { DraggingWireState } from '../types/canvas.ts';
+import type { CircuitMutationAction } from '../types/telemetry.ts';
 
 /**
  * useWorkbench - Hook Adaptador Reativo para o WorkbenchEngine e WorkbenchSceneGraph.
@@ -91,9 +92,9 @@ export function useWorkbench() {
 
   // Ações de Componentes
   const addComponent = useCallback(
-    (type: string, initialPos: Position2D = { x: 300, y: 200 }) => {
-      if (mode !== 'MODO_EDICAO') return;
-      sceneGraph.addComponent(type, initialPos);
+    (type: string, initialPos: Position2D = { x: 300, y: 200 }): ComponentDefinition | null => {
+      if (mode !== 'MODO_EDICAO') return null;
+      return sceneGraph.addComponent(type, initialPos);
     },
     [sceneGraph, mode]
   );
@@ -198,10 +199,11 @@ export function useWorkbench() {
   );
 
   const finishWireDrag = useCallback(
-    (toComponentId: string, toPinId: string) => {
-      sceneGraph.finishWireDrag(toComponentId, toPinId);
+    (toComponentId: string, toPinId: string): WireDefinition | null => {
+      if (mode !== 'MODO_EDICAO') return null;
+      return sceneGraph.finishWireDrag(toComponentId, toPinId);
     },
-    [sceneGraph]
+    [sceneGraph, mode]
   );
 
   const cancelWireDrag = useCallback(() => {
@@ -238,6 +240,13 @@ export function useWorkbench() {
       sceneGraph.loadFromCircuit(circuit);
     },
     [engine, sceneGraph, mode]
+  );
+
+  const applyRemoteMutation = useCallback(
+    (action: CircuitMutationAction, data: any) => {
+      sceneGraph.applyRemoteMutation(action, data);
+    },
+    [sceneGraph]
   );
 
   const handleEmulatorPinChange = useCallback(
@@ -283,6 +292,7 @@ export function useWorkbench() {
     startSimulation,
     stopSimulation,
     clearWorkbench,
-    loadFromCircuit
+    loadFromCircuit,
+    applyRemoteMutation
   };
 }

@@ -5,6 +5,7 @@ import type {
   StudentWorkspacePulse,
   ServerToClientMessage
 } from '../src/types/telemetry.js';
+import { WorkbenchSceneGraph } from '../src/engine/WorkbenchSceneGraph.ts';
 
 class MockWebSocket {
   public static readonly CONNECTING = 0;
@@ -57,6 +58,8 @@ test('TelemetryWebSocketClient: monta URL correta e envia mensagens tipadas', as
       role: 'student',
       classroomId: 'turma_alpha',
       workspaceId: 'ws_aluno_99',
+      userId: 'usr_lucas',
+      userName: 'Lucas',
       autoReconnect: false
     });
 
@@ -77,6 +80,8 @@ test('TelemetryWebSocketClient: monta URL correta e envia mensagens tipadas', as
     assert.ok(wsInstance.url.includes('role=student'));
     assert.ok(wsInstance.url.includes('classroomId=turma_alpha'));
     assert.ok(wsInstance.url.includes('workspaceId=ws_aluno_99'));
+    assert.ok(wsInstance.url.includes('userId=usr_lucas'));
+    assert.ok(wsInstance.url.includes('userName=Lucas'));
 
     // Teste de envio de PULSE
     const dummyPulse: StudentWorkspacePulse = {
@@ -147,4 +152,111 @@ test('TelemetryWebSocketClient: monta URL correta e envia mensagens tipadas', as
   } finally {
     (globalThis as any).WebSocket = originalWs;
   }
+});
+
+test('EIXO D: TelemetryWebSocketClient envia ações colaborativas (locks, cursores e mutações)', async () => {
+  const originalWs = (globalThis as any).WebSocket;
+  (globalThis as any).WebSocket = MockWebSocket;
+  MockWebSocket.instances = [];
+
+  try {
+    const client = new TelemetryWebSocketClient({
+      url: 'ws://localhost:3333/ws/telemetry',
+      role: 'student',
+      workspaceId: 'ws_collab_01',
+      userId: 'usr_pedro',
+      userName: 'Pedro',
+      autoReconnect: false
+    });
+
+    client.connect();
+    await new Promise((r) => setTimeout(r, 20));
+
+    const ws = MockWebSocket.instances[0];
+
+    // 1. Lock Component
+    const locked = client.lockComponent('res_01');
+    assert.equal(locked, true);
+    const lastLock = JSON.parse(ws.sentMessages[ws.sentMessages.length - 1]);
+    assert.equal(lastLock.type, 'LOCK_COMPONENT');
+    assert.equal(lastLock.payload.componentId, 'res_01');
+
+    // 2. Unlock Component
+    const unlocked = client.unlockComponent('res_01');
+    assert.equal(unlocked, true);
+    const lastUnlock = JSON.parse(ws.sentMessages[ws.sentMessages.length - 1]);
+    assert.equal(lastUnlock.type, 'UNLOCK_COMPONENT');
+    assert.equal(lastUnlock.payload.componentId, 'res_01');
+
+    // 3. Cursor Move
+    const moved = client.sendCursorPosition({ x: 450, y: 320 });
+    assert.equal(moved, true);
+    const lastCursor = JSON.parse(ws.sentMessages[ws.sentMessages.length - 1]);
+    assert.equal(lastCursor.type, 'CURSOR_MOVE');
+    assert.equal(lastCursor.payload.position.x, 450);
+    assert.equal(lastCursor.payload.position.y, 320);
+
+    // 4. Circuit Mutation
+    const mutated = client.sendCircuitMutation('UPDATE_COMPONENT', {
+      id: 'res_01',
+      position: { x: 500, y: 300 }
+    });
+    assert.equal(mutated, true);
+    const lastMutation = JSON.parse(ws.sentMessages[ws.sentMessages.length - 1]);
+    assert.equal(lastMutation.type, 'CIRCUIT_MUTATION');
+    assert.equal(lastMutation.payload.action, 'UPDATE_COMPONENT');
+    assert.equal(lastMutation.payload.data.id, 'res_01');
+
+    client.disconnect();
+  } finally {
+    (globalThis as any).WebSocket = originalWs;
+  }
+});
+
+test('EIXO D: WorkbenchSceneGraph aplica mutações remotas em tempo real', () => {
+  const scene = new WorkbenchSceneGraph();
+
+  // 1. ADD_COMPONENT remoto
+  scene.applyRemoteMutation('ADD_COMPONENT', {
+    id: 'btn_peer_01',
+    type: 'INPUT_PUSHBUTTON',
+    label: 'Botão Colaborativo',
+    position: { x: 400, y: 220 }
+  });
+
+  const btn = scene.getComponent('btn_peer_01');
+  assert.ok(btn, 'Componente adicionado remotamente deve existir no grafo');
+  assert.equal(btn.type, 'INPUT_PUSHBUTTON');
+  assert.equal(btn.position.x, 400);
+
+  // 2. UPDATE_COMPONENT remoto (posição e label)
+  scene.applyRemoteMutation('UPDATE_COMPONENT', {
+    id: 'btn_peer_01',
+    position: { x: 420, y: 240 },
+    label: 'Botão Atualizado'
+  });
+
+  const updatedBtn = scene.getComponent('btn_peer_01');
+  assert.equal(updatedBtn?.position.x, 420);
+  assert.equal(updatedBtn?.label, 'Botão Atualizado');
+
+  // 3. ADD_WIRE remoto
+  scene.applyRemoteMutation('ADD_WIRE', {
+    id: 'wire_peer_99',
+    from: { componentId: 'btn_peer_01', pinId: 'PIN_1' },
+    to: { componentId: 'mcu_uno_01', pinId: 'D2' },
+    color: 'BLUE'
+  });
+
+  const wire = scene.getWire('wire_peer_99');
+  assert.ok(wire, 'Fio adicionado remotamente deve existir no grafo');
+  assert.equal(wire.color, 'BLUE');
+
+  // 4. REMOVE_WIRE remoto
+  scene.applyRemoteMutation('REMOVE_WIRE', { id: 'wire_peer_99' });
+  assert.equal(scene.getWire('wire_peer_99'), undefined);
+
+  // 5. REMOVE_COMPONENT remoto
+  scene.applyRemoteMutation('REMOVE_COMPONENT', { id: 'btn_peer_01' });
+  assert.equal(scene.getComponent('btn_peer_01'), undefined);
 });

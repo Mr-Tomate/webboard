@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { WireColor, CircuitDefinition, EvaluationResult, ChallengeDefinition } from '@webboard/contracts';
+import type {
+  WireColor,
+  CircuitDefinition,
+  EvaluationResult,
+  ChallengeDefinition,
+  Position2D
+} from '@webboard/contracts';
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
 import { useTelemetrySocket } from './hooks/useTelemetrySocket.js';
@@ -59,7 +65,9 @@ export function App() {
     updateComponentParameters,
     updateComponentLabel,
     electricalStates,
-    setSelectedComponentId
+    setSelectedComponentId,
+    updateComponentPosition,
+    applyRemoteMutation
   } = workbenchHook;
 
   const {
@@ -86,6 +94,10 @@ export function App() {
   // Alternância de Visão (Bancada do Aluno vs Painel Panóptico do Professor)
   const [currentView, setCurrentView] = useState<ActiveAppView>('STUDENT_BENCH');
   const [isMirrorMode, setIsMirrorMode] = useState(false);
+
+  // Identidade do Estudante para Colaboração no Workspace
+  const [currentUserId] = useState(() => `user_${Math.random().toString(36).slice(2, 8)}`);
+  const [currentUserName] = useState('Você (Aluno)');
 
   // Instância do Emulador AVR8js
   const avrBoardRef = useRef<AVRBoard | null>(null);
@@ -114,7 +126,7 @@ export function App() {
   ]);
   const [baudRate, setBaudRate] = useState<BaudRate>(9600);
 
-  // Conexão WebSocket de Telemetria (Aluno ou Professor)
+  // Conexão WebSocket de Telemetria e Colaboração Concorrente (Eixo D)
   const socketRole = currentView === 'TEACHER_DASHBOARD' ? 'teacher' : 'student';
   const {
     isConnected: isWsConnected,
@@ -124,12 +136,26 @@ export function App() {
     dismissNote,
     sendPulse,
     sendFaultAlert,
-    sendPedagogicalNote
+    sendPedagogicalNote,
+    activeLocks,
+    remoteCursors,
+    presenceMembers,
+    lockRejectedAlert,
+    dismissLockRejectedAlert,
+    lockComponent,
+    unlockComponent,
+    sendCursorPosition,
+    sendCircuitMutation
   } = useTelemetrySocket(
     {
       role: socketRole,
       classroomId: 'turma_8b',
-      workspaceId: 'ws_aluno_01'
+      workspaceId: 'ws_aluno_01',
+      userId: currentUserId,
+      userName: currentUserName,
+      onCircuitMutated: (mutation) => {
+        applyRemoteMutation(mutation.action, mutation.data);
+      }
     },
     SAMPLE_CLASSROOM_WORKSPACES
   );
@@ -296,8 +322,11 @@ export function App() {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (selectedComponentId) {
           deleteComponent(selectedComponentId);
+          sendCircuitMutation('REMOVE_COMPONENT', { id: selectedComponentId });
+          setSelectedComponentId(null);
         } else if (selectedWireId) {
           deleteWire(selectedWireId);
+          sendCircuitMutation('REMOVE_WIRE', { id: selectedWireId });
         }
       } else if (e.key === 'Escape') {
         cancelWireDrag();
@@ -307,7 +336,16 @@ export function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedComponentId, selectedWireId, deleteComponent, deleteWire, cancelWireDrag, setSelectedComponentId, isMirrorMode]);
+  }, [
+    selectedComponentId,
+    selectedWireId,
+    deleteComponent,
+    deleteWire,
+    cancelWireDrag,
+    setSelectedComponentId,
+    isMirrorMode,
+    sendCircuitMutation
+  ]);
 
   const handleAddComponentAtCenter = (type: string) => {
     if (isMirrorMode) return;
@@ -316,16 +354,21 @@ export function App() {
       y: dimensions.height / 2
     };
     const centerWorld = toWorld(centerScreen);
-    addComponent(type, centerWorld);
+    const newComp = addComponent(type, centerWorld);
+    if (newComp) {
+      sendCircuitMutation('ADD_COMPONENT', newComp);
+    }
   };
 
   const handleDeleteSelected = () => {
     if (isMirrorMode) return;
     if (selectedComponentId) {
       deleteComponent(selectedComponentId);
+      sendCircuitMutation('REMOVE_COMPONENT', { id: selectedComponentId });
       setSelectedComponentId(null);
     } else if (selectedWireId) {
       deleteWire(selectedWireId);
+      sendCircuitMutation('REMOVE_WIRE', { id: selectedWireId });
     }
   };
 
@@ -336,6 +379,38 @@ export function App() {
       updateWireColor(selectedWireId, color);
     }
   };
+
+  const handleComponentDragStart = useCallback(
+    (componentId: string) => {
+      lockComponent(componentId);
+    },
+    [lockComponent]
+  );
+
+  const handleComponentDragEnd = useCallback(
+    (componentId: string, newPos: Position2D) => {
+      updateComponentPosition(componentId, newPos);
+      unlockComponent(componentId);
+      sendCircuitMutation('UPDATE_COMPONENT', { id: componentId, position: newPos });
+    },
+    [updateComponentPosition, unlockComponent, sendCircuitMutation]
+  );
+
+  const handleUpdateComponentParameters = useCallback(
+    (componentId: string, parameters: Record<string, any>) => {
+      updateComponentParameters(componentId, parameters);
+      sendCircuitMutation('UPDATE_COMPONENT', { id: componentId, parameters });
+    },
+    [updateComponentParameters, sendCircuitMutation]
+  );
+
+  const handleUpdateComponentLabel = useCallback(
+    (componentId: string, label: string) => {
+      updateComponentLabel(componentId, label);
+      sendCircuitMutation('UPDATE_COMPONENT', { id: componentId, label });
+    },
+    [updateComponentLabel, sendCircuitMutation]
+  );
 
   const handleSendSerialMessage = useCallback((text: string) => {
     const userMsg = createSerialMessage(text, 'TX');
@@ -543,9 +618,14 @@ export function App() {
 
   const handleExitMirrorMode = () => {
     setIsMirrorMode(false);
+    setCurrentView('TEACHER_DASHBOARD');
   };
 
-  const handleAddPedagogicalNote = (workspaceId: string, text: string, targetComponentId?: string) => {
+  const handleAddPedagogicalNote = (
+    workspaceId: string,
+    text: string,
+    targetComponentId?: string
+  ) => {
     sendPedagogicalNote({
       workspaceId,
       author: 'Prof. Titular',
@@ -604,6 +684,25 @@ export function App() {
       {/* Visão 1: Bancada do Aluno / Espelho */}
       {currentView === 'STUDENT_BENCH' ? (
         <>
+          {/* Banner de Soft-Lock Rejeitado (Colaboração Concorrente) */}
+          {lockRejectedAlert && (
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4 animate-in slide-in-from-top-4">
+              <div className="p-3 rounded-lg bg-sky-950/95 border-2 border-sky-400 shadow-2xl text-sky-100 flex items-center justify-between gap-3 backdrop-blur-md">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-base">🔒</span>
+                  <p className="text-xs font-semibold">{lockRejectedAlert.reason}</p>
+                </div>
+                <button
+                  onClick={dismissLockRejectedAlert}
+                  className="p-1 rounded hover:bg-sky-900 text-sky-300 transition cursor-pointer"
+                  title="Dispensar aviso"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Banner de Novas Orientações Pedagógicas Recebidas do Docente */}
           {incomingNotes.length > 0 && !isMirrorMode && (
             <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 animate-in slide-in-from-top-4">
@@ -640,10 +739,15 @@ export function App() {
             />
           )}
 
-          {/* Canvas Konva 2D da Bancada */}
+          {/* Canvas Konva 2D da Bancada com Camada de Colaboração (Eixo D) */}
           <WorkbenchStage
             viewportHook={viewportHook}
             workbenchHook={workbenchHook}
+            activeLocks={activeLocks}
+            remoteCursors={remoteCursors}
+            onLocalCursorMove={sendCursorPosition}
+            onComponentDragStart={handleComponentDragStart}
+            onComponentDragEnd={handleComponentDragEnd}
           />
 
           {/* Inspetor de Propriedades e Código de Cores (Eixo B da Fase 2) */}
@@ -654,10 +758,11 @@ export function App() {
               electricalState={selectedElectricalState}
               isCodePanelOpen={isCodePanelOpen}
               onClose={() => setSelectedComponentId(null)}
-              onUpdateParameters={updateComponentParameters}
-              onUpdateLabel={updateComponentLabel}
+              onUpdateParameters={handleUpdateComponentParameters}
+              onUpdateLabel={handleUpdateComponentLabel}
               onDeleteComponent={(id) => {
                 deleteComponent(id);
+                sendCircuitMutation('REMOVE_COMPONENT', { id });
                 setSelectedComponentId(null);
               }}
             />
@@ -689,6 +794,7 @@ export function App() {
             fault={fault}
             componentCount={components.length}
             wireCount={wires.length}
+            presenceMembers={presenceMembers}
           />
 
           {/* Modal de Avaliação / Auto-Grading */}

@@ -1,19 +1,22 @@
 import React from 'react';
-import { Layers, GitCommit, MousePointer, Info } from 'lucide-react';
+import { Layers, GitCommit, Info, Users } from 'lucide-react';
 import type { WorkbenchMode, WorkbenchFaultPayload } from '@webboard/contracts';
+import type { PresenceMember } from '../../types/telemetry.ts';
 
 interface StatusBarProps {
   mode: WorkbenchMode;
   fault: WorkbenchFaultPayload | null;
   componentCount: number;
   wireCount: number;
+  presenceMembers?: PresenceMember[];
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
   mode,
   fault,
   componentCount,
-  wireCount
+  wireCount,
+  presenceMembers
 }) => {
   const isSimulating = mode === 'MODO_SIMULACAO';
 
@@ -30,6 +33,22 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           <GitCommit className="w-3.5 h-3.5 text-zinc-400" />
           <span>Fios: <strong className="text-white">{wireCount}</strong></span>
         </div>
+
+        {/* Eixo D: Indicador de Membros da Equipe Conectados */}
+        {presenceMembers && presenceMembers.length > 0 && (
+          <>
+            <div className="h-3 w-px bg-[#2e2e34]" />
+            <div
+              className="flex items-center gap-1.5 text-sky-400 font-medium"
+              title={`Membros conectados no workspace: ${presenceMembers.map((m) => m.userName).join(', ')}`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>
+                Equipe: <strong className="text-sky-300">{presenceMembers.length} online</strong>
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Alerta de Falha se houver */}

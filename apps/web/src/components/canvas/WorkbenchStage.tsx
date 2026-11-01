@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Stage, Layer, Shape, Circle } from 'react-konva';
+import { Stage, Layer, Shape, Circle, Group, Rect, Text, Path } from 'react-konva';
 import type { Position2D } from '@webboard/contracts';
 import { GridLayer } from './GridLayer.tsx';
 import { ComponentNode } from './ComponentNode.tsx';
@@ -7,10 +7,37 @@ import { WireNode } from './WireNode.tsx';
 import { drawWirePath } from '../../utils/geometry.ts';
 import type { useViewport } from '../../hooks/useViewport.ts';
 import type { useWorkbench } from '../../hooks/useWorkbench.ts';
+import type { ComponentLock, RemoteCursor } from '../../types/telemetry.ts';
+
+const CURSOR_COLORS = [
+  '#38bdf8', // Sky
+  '#f472b6', // Pink
+  '#a3e635', // Lime
+  '#facc15', // Yellow
+  '#fb923c', // Orange
+  '#c084fc', // Purple
+  '#2dd4bf', // Teal
+  '#e879f9', // Fuchsia
+];
+
+function getCursorColor(id: string): string {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % CURSOR_COLORS.length;
+  return CURSOR_COLORS[index];
+}
 
 interface WorkbenchStageProps {
   viewportHook: ReturnType<typeof useViewport>;
   workbenchHook: ReturnType<typeof useWorkbench>;
+  activeLocks?: Map<string, ComponentLock>;
+  remoteCursors?: Map<string, RemoteCursor>;
+  onLocalCursorMove?: (worldPos: Position2D) => void;
+  onComponentDragStart?: (componentId: string) => void;
+  onComponentDragEnd?: (componentId: string, newPos: Position2D) => void;
 }
 
 /**
@@ -22,11 +49,22 @@ interface WorkbenchStageProps {
  * - Botão do Meio ou Barra de Espaço + Drag: Pan universal clássico.
  * - Roda do Mouse / Trackpad (2 dedos): Pan vertical e horizontal suave (deltaX, deltaY).
  * - Ctrl + Roda do Mouse / Trackpad Pinch: Zoom contínuo, suave e centrado no cursor.
- * - Hierarquia estrita de 5 Camadas (Grid -> Componentes -> Fios -> Interação -> Efeitos).
+ * - Hierarquia estrita de 6 Camadas:
+ *   1. GridLayer
+ *   2. Componentes (com Soft-Lock)
+ *   3. Wires
+ *   4. Interação Ativa (Fio elástico)
+ *   5. Efeitos e Alertas de Falha
+ *   6. Colaboração Concorrente & Cursores Remotos (Eixo D)
  */
 export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   viewportHook,
-  workbenchHook
+  workbenchHook,
+  activeLocks,
+  remoteCursors,
+  onLocalCursorMove,
+  onComponentDragStart,
+  onComponentDragEnd
 }) => {
   const {
     viewport,
@@ -60,6 +98,7 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
   } = workbenchHook;
 
   const stageRef = useRef<any>(null);
+  const lastCursorSendRef = useRef<number>(0);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [panButton, setPanButton] = useState<number | null>(null);
@@ -155,9 +194,21 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
     if (!stage) return;
 
     const pointer = stage.getPointerPosition();
-    if (pointer && draggingWire) {
+    if (pointer) {
       const worldPos = toWorld(pointer);
-      updateWireDrag(worldPos);
+
+      if (draggingWire) {
+        updateWireDrag(worldPos);
+      }
+
+      // Transmissão do cursor local throttled para colaboradores
+      if (onLocalCursorMove) {
+        const now = Date.now();
+        if (now - lastCursorSendRef.current >= 40) {
+          lastCursorSendRef.current = now;
+          onLocalCursorMove(worldPos);
+        }
+      }
     }
 
     if (isPanning && lastPointerPos) {
@@ -266,8 +317,16 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               isConnectingWire={!!draggingWire}
               highlightedPinKeys={highlightedPinKeys}
               electricalState={electricalStates.get(component.id)}
+              lockedBy={activeLocks?.get(component.id)}
               onSelect={setSelectedComponentId}
-              onDragEnd={updateComponentPosition}
+              onDragStart={onComponentDragStart}
+              onDragEnd={(compId, newPos) => {
+                if (onComponentDragEnd) {
+                  onComponentDragEnd(compId, newPos);
+                } else {
+                  updateComponentPosition(compId, newPos);
+                }
+              }}
               onStartWire={startWireDrag}
               onFinishWire={finishWireDrag}
               onPinHoverStart={handlePinHoverStart}
@@ -342,6 +401,54 @@ export const WorkbenchStage: React.FC<WorkbenchStageProps> = ({
               );
             })()
           )}
+        </Layer>
+
+        {/* ========================================================
+            CAMADA 6: Colaboração Concorrente & Cursores Remotos (Eixo D)
+            ======================================================== */}
+        <Layer id="layer-collaboration-cursors" listening={false}>
+          {remoteCursors &&
+            Array.from(remoteCursors.values()).map((cursor) => {
+              const color = getCursorColor(cursor.userId);
+              return (
+                <Group
+                  key={cursor.userId}
+                  x={cursor.position.x}
+                  y={cursor.position.y}
+                  listening={false}
+                >
+                  {/* Seta do Cursor SVG */}
+                  <Path
+                    data="M0 0 L0 16 L4.5 12.5 L8.5 20 L11 18.5 L7 11.5 L12.5 11.5 Z"
+                    fill={color}
+                    stroke="#09090b"
+                    strokeWidth={1.5}
+                  />
+                  {/* Badge Neobrutalista com Nome do Colega */}
+                  <Group x={12} y={14}>
+                    <Rect
+                      x={0}
+                      y={0}
+                      width={Math.max(50, cursor.userName.length * 7.5 + 14)}
+                      height={18}
+                      fill={color}
+                      stroke="#09090b"
+                      strokeWidth={1.5}
+                      cornerRadius={4}
+                    />
+                    <Text
+                      text={cursor.userName}
+                      fontSize={10}
+                      fontFamily="monospace"
+                      fontStyle="bold"
+                      fill="#09090b"
+                      x={6}
+                      y={3}
+                    />
+                  </Group>
+                </Group>
+              );
+            })}
         </Layer>
       </Stage>
     </div>

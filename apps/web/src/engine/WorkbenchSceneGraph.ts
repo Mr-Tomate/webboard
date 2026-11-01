@@ -10,6 +10,7 @@ import { NetlistSolver, type NetlistResult } from '@webboard/core';
 import { snapPointToGrid } from '../utils/geometry.ts';
 import { COMPONENT_CATALOG } from '../catalog/manifests.ts';
 import type { DraggingWireState } from '../types/canvas.ts';
+import type { CircuitMutationAction } from '../types/telemetry.ts';
 
 export type SceneGraphListener = () => void;
 
@@ -28,45 +29,44 @@ export class WorkbenchSceneGraph {
 
   private selectedComponentId: string | null = null;
   private selectedWireId: string | null = null;
-  private activeWireColor: WireColor = 'BLUE';
+  private activeWireColor: WireColor = 'GREEN';
   private hoveredNetId: string | null = null;
+
   private draggingWire: DraggingWireState | null = null;
-
-  private listeners: Set<SceneGraphListener> = new Set();
   private cachedNetlist: NetlistResult | null = null;
+  private listeners: Set<SceneGraphListener> = new Set();
 
-  constructor(initialCircuit?: CircuitDefinition) {
-    if (initialCircuit) {
-      this.loadFromCircuit(initialCircuit);
-    } else {
-      this.initDefaultCircuit();
-    }
+  constructor() {
+    this.initDefaultCircuit();
   }
 
-  private initDefaultCircuit(): void {
+  /**
+   * Circuito canônico inicial pedagógico (Arduino Uno + Resistor 220R + LED Vermelho)
+   */
+  public initDefaultCircuit(): void {
     this.components = [
       {
         id: 'mcu_uno_01',
         type: 'MICROCONTROLLER_ARDUINO_UNO',
         label: 'Arduino Uno R3',
         isLocked: false,
-        position: { x: 100, y: 160 },
+        position: { x: 100, y: 150 },
         parameters: {}
       },
       {
         id: 'res_01',
         type: 'PASSIVE_RESISTOR',
-        label: 'Resistor 220Ω',
+        label: 'R1 (220Ω)',
         isLocked: false,
-        position: { x: 380, y: 160 },
+        position: { x: 500, y: 150 },
         parameters: { resistanceOhms: 220 }
       },
       {
         id: 'led_01',
-        type: 'ACTUATOR_LED',
-        label: 'LED Vermelho',
+        type: 'OUTPUT_LED',
+        label: 'LED1',
         isLocked: false,
-        position: { x: 580, y: 140 },
+        position: { x: 650, y: 150 },
         parameters: { color: 'RED' }
       }
     ];
@@ -381,6 +381,67 @@ export class WorkbenchSceneGraph {
     this.hoveredNetId = null;
     this.invalidateNetlist();
     this.emitChange();
+  }
+
+  // --- Sincronização de Mutações Remotas (Eixo D) ---
+
+  public applyRemoteMutation(action: CircuitMutationAction, data: any): void {
+    switch (action) {
+      case 'ADD_COMPONENT': {
+        if (!data || !data.id) return;
+        const exists = this.components.some((c) => c.id === data.id);
+        if (!exists) {
+          const comp: ComponentDefinition = {
+            id: data.id,
+            type: data.type,
+            label: data.label || data.name || data.type,
+            isLocked: !!data.isLocked,
+            position: data.position || { x: 300, y: 200 },
+            parameters: data.parameters || {}
+          };
+          this.components.push(comp);
+          this.invalidateNetlist();
+          this.emitChange();
+        }
+        break;
+      }
+      case 'UPDATE_COMPONENT': {
+        if (!data || !data.id) return;
+        const comp = this.components.find((c) => c.id === data.id);
+        if (comp) {
+          if (data.position) comp.position = { ...data.position };
+          if (data.parameters) comp.parameters = { ...comp.parameters, ...data.parameters };
+          if (data.label !== undefined) comp.label = data.label;
+          this.invalidateNetlist();
+          this.emitChange();
+        }
+        break;
+      }
+      case 'REMOVE_COMPONENT': {
+        const id = typeof data === 'string' ? data : data?.id;
+        if (id) {
+          this.removeComponent(id);
+        }
+        break;
+      }
+      case 'ADD_WIRE': {
+        if (!data || !data.id) return;
+        const exists = this.wires.some((w) => w.id === data.id);
+        if (!exists) {
+          this.wires.push(data);
+          this.invalidateNetlist();
+          this.emitChange();
+        }
+        break;
+      }
+      case 'REMOVE_WIRE': {
+        const id = typeof data === 'string' ? data : data?.id;
+        if (id) {
+          this.removeWire(id);
+        }
+        break;
+      }
+    }
   }
 
   private invalidateNetlist(): void {

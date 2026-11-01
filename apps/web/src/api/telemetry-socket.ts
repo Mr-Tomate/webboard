@@ -2,7 +2,8 @@ import type {
   ClientToServerMessage,
   ServerToClientMessage,
   StudentWorkspacePulse,
-  WebSocketRole
+  WebSocketRole,
+  CircuitMutationAction
 } from '../types/telemetry.js';
 
 export interface TelemetrySocketOptions {
@@ -10,6 +11,8 @@ export interface TelemetrySocketOptions {
   role: WebSocketRole;
   classroomId?: string;
   workspaceId?: string;
+  userId?: string;
+  userName?: string;
   autoReconnect?: boolean;
   reconnectIntervalMs?: number;
 }
@@ -37,6 +40,8 @@ export class TelemetryWebSocketClient {
       role: options.role,
       classroomId: options.classroomId || 'default_classroom',
       workspaceId: options.workspaceId || '',
+      userId: options.userId || '',
+      userName: options.userName || '',
       autoReconnect: options.autoReconnect ?? true,
       reconnectIntervalMs: options.reconnectIntervalMs ?? 3000
     };
@@ -59,6 +64,12 @@ export class TelemetryWebSocketClient {
 
     if (this.options.role === 'student' && this.options.workspaceId) {
       query.set('workspaceId', this.options.workspaceId);
+      if (this.options.userId) {
+        query.set('userId', this.options.userId);
+      }
+      if (this.options.userName) {
+        query.set('userName', this.options.userName);
+      }
     }
 
     const fullUrl = `${this.options.url}?${query.toString()}`;
@@ -170,6 +181,38 @@ export class TelemetryWebSocketClient {
     return this.send({
       type: 'SEND_NOTE',
       payload
+    });
+  }
+
+  // -------------------------------------------------------------
+  // MÉTODOS DE COLABORAÇÃO CONCORRENTE (EIXO D)
+  // -------------------------------------------------------------
+
+  public lockComponent(componentId: string): boolean {
+    return this.send({
+      type: 'LOCK_COMPONENT',
+      payload: { componentId }
+    });
+  }
+
+  public unlockComponent(componentId: string): boolean {
+    return this.send({
+      type: 'UNLOCK_COMPONENT',
+      payload: { componentId }
+    });
+  }
+
+  public sendCursorPosition(position: { x: number; y: number }): boolean {
+    return this.send({
+      type: 'CURSOR_MOVE',
+      payload: { position }
+    });
+  }
+
+  public sendCircuitMutation(action: CircuitMutationAction, data: unknown): boolean {
+    return this.send({
+      type: 'CIRCUIT_MUTATION',
+      payload: { action, data }
     });
   }
 
