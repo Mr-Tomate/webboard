@@ -34,6 +34,25 @@ test('WorkbenchSceneGraph: adiciona e remove componentes com snap to grid', () =
   assert.equal(scene.getComponent(added.id), undefined);
 });
 
+test('WorkbenchSceneGraph: atualiza parâmetros e rótulo do componente notificando observadores', () => {
+  const scene = new WorkbenchSceneGraph();
+
+  let notifyCount = 0;
+  scene.subscribe(() => {
+    notifyCount++;
+  });
+
+  // Atualiza parâmetros do resistor (ex: de 220 para 1000 Ohms)
+  scene.updateComponentParameters('res_01', { resistanceOhms: 1000 });
+  assert.equal(scene.getComponent('res_01')?.parameters?.resistanceOhms, 1000);
+  assert.equal(notifyCount, 1);
+
+  // Atualiza rótulo do componente
+  scene.updateComponentLabel('res_01', 'R_PULLDOWN_1K');
+  assert.equal(scene.getComponent('res_01')?.label, 'R_PULLDOWN_1K');
+  assert.equal(notifyCount, 2);
+});
+
 test('WorkbenchSceneGraph: fluxo de fiação e waypoints', () => {
   const scene = new WorkbenchSceneGraph();
 

@@ -208,6 +208,23 @@ export class WorkbenchSceneGraph {
     this.emitChange();
   }
 
+  public updateComponentParameters(componentId: string, parameters: Record<string, any>): void {
+    const comp = this.components.find((c) => c.id === componentId);
+    if (!comp) return;
+
+    comp.parameters = { ...comp.parameters, ...parameters };
+    this.invalidateNetlist();
+    this.emitChange();
+  }
+
+  public updateComponentLabel(componentId: string, label: string): void {
+    const comp = this.components.find((c) => c.id === componentId);
+    if (!comp) return;
+
+    comp.label = label;
+    this.emitChange();
+  }
+
   public removeComponent(componentId: string): void {
     this.components = this.components.filter((c) => c.id !== componentId);
     this.wires = this.wires.filter(
@@ -291,7 +308,6 @@ export class WorkbenchSceneGraph {
   public finishWireDrag(toComponentId: string, toPinId: string): WireDefinition | null {
     if (!this.draggingWire) return null;
 
-    // Se soltou ou clicou no mesmo pino de origem, mantém ativo sem cancelar
     if (
       this.draggingWire.fromComponentId === toComponentId &&
       this.draggingWire.fromPinId === toPinId
@@ -299,7 +315,6 @@ export class WorkbenchSceneGraph {
       return null;
     }
 
-    // Evita duplicidade de cabos entre os mesmos dois terminais
     const fromComp = this.draggingWire.fromComponentId;
     const fromPin = this.draggingWire.fromPinId;
     const alreadyExists = this.wires.some(

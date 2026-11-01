@@ -6,6 +6,7 @@ import { useTelemetrySocket } from './hooks/useTelemetrySocket.js';
 import { WorkbenchStage } from './components/canvas/WorkbenchStage.js';
 import { Toolbar, type ActiveAppView } from './components/ui/Toolbar.js';
 import { CatalogSidebar } from './components/ui/CatalogSidebar.js';
+import { InspectorDrawer } from './components/ui/InspectorDrawer.js';
 import { StatusBar } from './components/ui/StatusBar.js';
 import { CodeWorkspacePanel } from './components/editor/CodeWorkspacePanel.js';
 import { PanopticDashboard } from './components/dashboard/PanopticDashboard.js';
@@ -54,7 +55,11 @@ export function App() {
     clearWorkbench,
     cancelWireDrag,
     handleEmulatorPinChange,
-    loadFromCircuit
+    loadFromCircuit,
+    updateComponentParameters,
+    updateComponentLabel,
+    electricalStates,
+    setSelectedComponentId
   } = workbenchHook;
 
   const {
@@ -66,6 +71,17 @@ export function App() {
     fitToComponents,
     toWorld
   } = viewportHook;
+
+  // Componente e telemetria selecionados para o Inspector Drawer
+  const selectedComponent = useMemo(
+    () => components.find((c) => c.id === selectedComponentId) ?? null,
+    [components, selectedComponentId]
+  );
+
+  const selectedElectricalState = useMemo(
+    () => (selectedComponentId ? electricalStates.get(selectedComponentId) : undefined),
+    [electricalStates, selectedComponentId]
+  );
 
   // Alternância de Visão (Bancada do Aluno vs Painel Panóptico do Professor)
   const [currentView, setCurrentView] = useState<ActiveAppView>('STUDENT_BENCH');
@@ -285,12 +301,13 @@ export function App() {
         }
       } else if (e.key === 'Escape') {
         cancelWireDrag();
+        setSelectedComponentId(null);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedComponentId, selectedWireId, deleteComponent, deleteWire, cancelWireDrag, isMirrorMode]);
+  }, [selectedComponentId, selectedWireId, deleteComponent, deleteWire, cancelWireDrag, setSelectedComponentId, isMirrorMode]);
 
   const handleAddComponentAtCenter = (type: string) => {
     if (isMirrorMode) return;
@@ -306,6 +323,7 @@ export function App() {
     if (isMirrorMode) return;
     if (selectedComponentId) {
       deleteComponent(selectedComponentId);
+      setSelectedComponentId(null);
     } else if (selectedWireId) {
       deleteWire(selectedWireId);
     }
@@ -458,43 +476,30 @@ export function App() {
     };
 
     // Fallback formativo local caso o backend não esteja disponível
-    const hasLed = components.some((c) => c.type === 'LED');
-    const hasWires = wires.length >= 1;
-    const isApproved = hasLed && hasWires && !fault;
-
-    const localFallbackEvalResult: EvaluationResult = {
-      status: isApproved ? 'APPROVED' : 'FAILED',
-      totalExecutionVirtualSeconds: 2.0,
+    const isLedPresent = components.some((c) => c.type === 'ACTUATOR_LED');
+    const fallbackLocalEvaluation: EvaluationResult = {
+      status: isLedPresent ? 'APPROVED' : 'FAILED',
+      totalExecutionVirtualSeconds: 0.1,
       summary: {
-        totalTests: 2,
-        passedTests: isApproved ? 2 : (hasWires ? 1 : 0),
-        failedTests: isApproved ? 0 : (hasWires ? 1 : 2)
+        totalTests: 1,
+        passedTests: isLedPresent ? 1 : 0,
+        failedTests: isLedPresent ? 0 : 1
       },
       testResults: [
         {
-          testCaseId: 'TC-01: Análise Elétrica e Invariantes',
-          passed: !fault,
-          executionTimeVirtualSeconds: 1.0,
-          message: fault
-            ? `Falha detectada: ${fault.message}`
-            : 'Circuito estável sem curtos-circuitos ou queima de componentes.'
-        },
-        {
-          testCaseId: 'TC-02: Ativação de Cargas e Firmware',
-          passed: isApproved,
-          executionTimeVirtualSeconds: 1.0,
-          message: isApproved
-            ? 'LED conectado com sucesso e acoplado ao firmware da bancada.'
-            : 'Faltam componentes essenciais: insira um LED e realize as conexões elétricas.'
+          testCaseId: 'tc_formativo_01',
+          passed: isLedPresent,
+          executionTimeVirtualSeconds: 0.1,
+          message: isLedPresent
+            ? 'LED conectado com sucesso na bancada.'
+            : 'Falta LED conectado na bancada para validar o desafio.'
         }
       ]
     };
 
-    let finalEvalResult: EvaluationResult = localFallbackEvalResult;
-
     try {
       const response = await apiClient.submitChallenge('ws_aluno_01', {
-        challengeId: activeChallengeId || 'ch_desafio_blink_01',
+        challengeId: activeChallengeId,
         userId: 'usr_aluno_01',
         circuit: circuitPayload,
         codeText: language === 'CPP' ? cppCode : pythonCode,
@@ -502,30 +507,36 @@ export function App() {
       });
 
       if (response && response.evaluation) {
-        finalEvalResult = response.evaluation;
+        const evalData = response.evaluation;
+        setEvaluationResult(evalData);
+        setSerialMessages((prev) =>
+          appendToSerialBuffer(
+            prev,
+            createSerialMessage(
+              `[SUBMISSÃO] Resultado Oficial: ${evalData.status} (${evalData.summary.passedTests}/${evalData.summary.totalTests} testes aprovados)`,
+              evalData.status === 'APPROVED' ? 'SYSTEM' : 'ERROR'
+            )
+          )
+        );
+      } else {
+        setEvaluationResult(fallbackLocalEvaluation);
       }
-
-      setSerialMessages((prev) =>
-        appendToSerialBuffer(
-          prev,
-          createSerialMessage(`[SUBMISSÃO OFICIAL] Avaliação oficial concluída: ${finalEvalResult.status}.`, 'SYSTEM')
-        )
-      );
     } catch {
-      // Continua exibindo a avaliação formativa local caso o backend esteja offline
+      setEvaluationResult(fallbackLocalEvaluation);
       setSerialMessages((prev) =>
         appendToSerialBuffer(
           prev,
-          createSerialMessage(`[AVALIAÇÃO OFFLINE] Suíte remota indisponível. Avaliação local: ${localFallbackEvalResult.status}.`, 'SYSTEM')
+          createSerialMessage('[OFFLINE] Avaliação local formativa executada.', 'SYSTEM')
         )
       );
     } finally {
       setIsSubmitting(false);
-      setEvaluationResult(finalEvalResult);
     }
   };
 
-  const handleMirrorWorkspace = (_ws: StudentWorkspacePulse) => {
+  // Funções do Docente (Visão Panóptica e Espelhamento)
+  const handleMirrorWorkspace = (targetWorkspace: StudentWorkspacePulse) => {
+    console.log(`Espelhando workspace ${targetWorkspace.workspaceId} na visão do aluno`);
     setIsMirrorMode(true);
     setCurrentView('STUDENT_BENCH');
   };
@@ -634,6 +645,23 @@ export function App() {
             viewportHook={viewportHook}
             workbenchHook={workbenchHook}
           />
+
+          {/* Inspetor de Propriedades e Código de Cores (Eixo B da Fase 2) */}
+          {!isMirrorMode && selectedComponent && (
+            <InspectorDrawer
+              component={selectedComponent}
+              mode={mode}
+              electricalState={selectedElectricalState}
+              isCodePanelOpen={isCodePanelOpen}
+              onClose={() => setSelectedComponentId(null)}
+              onUpdateParameters={updateComponentParameters}
+              onUpdateLabel={updateComponentLabel}
+              onDeleteComponent={(id) => {
+                deleteComponent(id);
+                setSelectedComponentId(null);
+              }}
+            />
+          )}
 
           {/* Painel Lateral do Monaco Editor & Monitor Serial */}
           <CodeWorkspacePanel

@@ -106,6 +106,22 @@ export function useWorkbench() {
     [sceneGraph, mode]
   );
 
+  const updateComponentParameters = useCallback(
+    (componentId: string, parameters: Record<string, any>) => {
+      // RN-BNC-01: em MODO_SIMULACAO, bloqueia mutações estruturais
+      if (mode === 'MODO_SIMULACAO') return;
+      sceneGraph.updateComponentParameters(componentId, parameters);
+    },
+    [sceneGraph, mode]
+  );
+
+  const updateComponentLabel = useCallback(
+    (componentId: string, label: string) => {
+      sceneGraph.updateComponentLabel(componentId, label);
+    },
+    [sceneGraph]
+  );
+
   const deleteComponent = useCallback(
     (componentId: string) => {
       if (mode !== 'MODO_EDICAO') return;
@@ -198,7 +214,7 @@ export function useWorkbench() {
     engine.loadCircuit(circuitDef);
     const ok = engine.startSimulation();
     if (ok) {
-      sceneGraph.selectComponent(null);
+      // Durante simulação, mantém a seleção se houver para o Inspector exibir telemetria ao vivo
       sceneGraph.selectWire(null);
       sceneGraph.cancelWireDrag();
     }
@@ -253,6 +269,8 @@ export function useWorkbench() {
     setHoveredNetId,
     addComponent,
     updateComponentPosition,
+    updateComponentParameters,
+    updateComponentLabel,
     deleteComponent,
     deleteWire,
     updateWireColor,

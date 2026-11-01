@@ -5,6 +5,7 @@ import type { ComponentElectricalState } from '@webboard/core';
 import { COMPONENT_CATALOG } from '../../catalog/manifests.ts';
 import { PinAnchorNode } from './PinAnchorNode.tsx';
 import { snapPointToGrid } from '../../utils/geometry.ts';
+import { calculateResistorColorBands } from '../../utils/resistor-color-code.ts';
 
 interface ComponentNodeProps {
   component: ComponentDefinition;
@@ -52,6 +53,36 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
   const isDestroyed = electricalState?.visualState === 'destroyed' || electricalState?.isDestroyed;
 
   const isBreadboard = component.type === 'BOARD_BREADBOARD_HALF' || component.type === 'BOARD_BREADBOARD';
+
+  // Código de cores do resistor calculado dinamicamente pela Norma IEC 60062
+  const resistorBands = component.type === 'PASSIVE_RESISTOR'
+    ? calculateResistorColorBands(component.parameters?.resistanceOhms ?? 220)
+    : null;
+
+  // Lente do LED em repouso e ativa
+  const getLedBaseColor = () => {
+    switch (component.parameters?.color) {
+      case 'GREEN': return '#22c55e';
+      case 'BLUE': return '#3b82f6';
+      case 'YELLOW': return '#eab308';
+      case 'WHITE': return '#f4f4f5';
+      case 'RED':
+      default:
+        return '#ef4444';
+    }
+  };
+
+  const getLedActiveColor = () => {
+    switch (component.parameters?.color) {
+      case 'GREEN': return '#4ade80';
+      case 'BLUE': return '#60a5fa';
+      case 'YELLOW': return '#fde047';
+      case 'WHITE': return '#ffffff';
+      case 'RED':
+      default:
+        return '#ff4d4d';
+    }
+  };
 
   const getThemeColor = () => {
     if (isDestroyed) return '#2e1014'; // Queimado por sobrecorrente
@@ -188,14 +219,47 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
           {/* Serigrafia das letras de linhas A-E e F-J nas laterais */}
           {['A', 'B', 'C', 'D', 'E'].map((letter, idx) => (
             <React.Fragment key={letter}>
-              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={18} y={60 + idx * 16} />
-              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={514} y={60 + idx * 16} />
+              <Text
+                text={letter}
+                fontSize={8}
+                fontFamily="monospace"
+                fontStyle="bold"
+                fill="#71717a"
+                x={14}
+                y={60 + idx * 14}
+              />
+              <Text
+                text={letter}
+                fontSize={8}
+                fontFamily="monospace"
+                fontStyle="bold"
+                fill="#71717a"
+                x={525}
+                y={60 + idx * 14}
+              />
             </React.Fragment>
           ))}
+
           {['F', 'G', 'H', 'I', 'J'].map((letter, idx) => (
             <React.Fragment key={letter}>
-              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={18} y={148 + idx * 16} />
-              <Text text={letter} fontSize={8} fontStyle="bold" fill="#71717a" x={514} y={148 + idx * 16} />
+              <Text
+                text={letter}
+                fontSize={8}
+                fontFamily="monospace"
+                fontStyle="bold"
+                fill="#71717a"
+                x={14}
+                y={150 + idx * 14}
+              />
+              <Text
+                text={letter}
+                fontSize={8}
+                fontFamily="monospace"
+                fontStyle="bold"
+                fill="#71717a"
+                x={525}
+                y={150 + idx * 14}
+              />
             </React.Fragment>
           ))}
 
@@ -288,7 +352,7 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
         </Group>
       )}
 
-      {/* 2. Resistor de Precisão: Corpo cerâmico com faixas coloridas ampliadas */}
+      {/* 2. Resistor de Precisão: Corpo cerâmico com faixas coloridas dinâmicas IEC 60062 */}
       {component.type === 'PASSIVE_RESISTOR' && (
         <Group>
           {/* Terminais metálicos laterais */}
@@ -305,13 +369,13 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
             strokeWidth={2}
             cornerRadius={4}
           />
-          {/* Faixas coloridas do resistor (220 ohms: Vermelho, Vermelho, Marrom, Dourado) */}
-          {!isDestroyed && (
+          {/* Faixas coloridas do resistor (Norma IEC 60062) */}
+          {!isDestroyed && resistorBands && (
             <>
-              <Rect x={46} y={15} width={6} height={30} fill="#dc2626" />
-              <Rect x={58} y={15} width={6} height={30} fill="#dc2626" />
-              <Rect x={70} y={15} width={6} height={30} fill="#78350f" />
-              <Rect x={88} y={15} width={6} height={30} fill="#eab308" />
+              <Rect x={46} y={15} width={6} height={30} fill={resistorBands.band1.hex} />
+              <Rect x={58} y={15} width={6} height={30} fill={resistorBands.band2.hex} />
+              <Rect x={70} y={15} width={6} height={30} fill={resistorBands.band3.hex} />
+              <Rect x={88} y={15} width={6} height={30} fill={resistorBands.band4.hex} />
             </>
           )}
           {isDestroyed && (
@@ -330,7 +394,7 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
               y={34}
               radius={32}
               fill="rgba(239, 68, 68, 0.45)"
-              shadowColor="#ef4444"
+              shadowColor={getLedActiveColor()}
               shadowBlur={24}
             />
           )}
@@ -344,10 +408,8 @@ export const ComponentNode: React.FC<ComponentNodeProps> = ({
               isDestroyed
                 ? '#1c1917'
                 : isLedActive
-                ? '#ff3333'
-                : component.parameters?.color === 'RED'
-                ? '#ef4444'
-                : '#22c55e'
+                ? getLedActiveColor()
+                : getLedBaseColor()
             }
             stroke={isDestroyed ? '#7f1d1d' : '#ffffff'}
             strokeWidth={2}
