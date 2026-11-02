@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CompilerClient, validateArduinoSketch } from '../src/api/compiler-client.ts';
+import { validateIntelHex } from '../src/emulator/intel-hex.ts';
 
 const VALID_SKETCH = 'void setup() { pinMode(13, OUTPUT); }\nvoid loop() { digitalWrite(13, HIGH); }';
 
@@ -86,7 +87,7 @@ test('CompilerClient: resposta malformada (HTTP 500 não-JSON) vira erro explíc
   }
 });
 
-test('CompilerClient: servidor offline aplica validação local e sinaliza offline com hex vazio', async () => {
+test('CompilerClient: servidor offline aciona Tier 2 WasmCompiler com hex real e origin WASM_LOCAL', async () => {
   const restore = mockFetch(() => {
     throw new TypeError('fetch failed');
   });
@@ -96,8 +97,10 @@ test('CompilerClient: servidor offline aplica validação local e sinaliza offli
     assert.equal(ok.success, true);
     if (ok.success) {
       assert.equal(ok.offline, true);
-      assert.equal(ok.hex, '');
-      assert.match(ok.stdout, /offline/);
+      assert.equal(ok.origin, 'WASM_LOCAL');
+      assert.ok(ok.hex.length > 0, 'Hex não deve estar vazio no Tier 2 Wasm');
+      assert.equal(validateIntelHex(ok.hex), null, 'Hex deve ser estruturalmente íntegro');
+      assert.match(ok.stdout, /offline/i);
     }
 
     const bad = await new CompilerClient().compile('void setup() {}');
@@ -105,12 +108,21 @@ test('CompilerClient: servidor offline aplica validação local e sinaliza offli
     if (!bad.success) {
       assert.match(bad.message, /void loop\(\)/);
     }
+
+    // Com wasmFallback: false, retorna o fallback superficial anterior (hex vazio)
+    const superficial = await new CompilerClient('http://localhost:3002', { wasmFallback: false }).compile(VALID_SKETCH);
+    assert.equal(superficial.success, true);
+    if (superficial.success) {
+      assert.equal(superficial.offline, true);
+      assert.equal(superficial.hex, '');
+      assert.match(superficial.stdout, /offline/);
+    }
   } finally {
     restore();
   }
 });
 
-test('CompilerClient: timeout aborta a requisição e cai na validação local', async () => {
+test('CompilerClient: timeout aborta a requisição e cai no compilador local', async () => {
   const restore = mockFetch(
     (_u, init) =>
       new Promise<Response>((_resolve, reject) => {
@@ -128,6 +140,8 @@ test('CompilerClient: timeout aborta a requisição e cai na validação local',
     if (res.success) {
       assert.equal(res.offline, true);
       assert.match(res.stdout, /tempo limite de 20ms/);
+      assert.equal(res.origin, 'WASM_LOCAL');
+      assert.ok(res.hex.length > 0);
     }
   } finally {
     restore();

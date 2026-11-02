@@ -21,7 +21,7 @@ export interface FirmwareLog {
 }
 
 /** Origem do firmware gravado na flash virtual. */
-export type FirmwareOrigin = 'COMPILED' | 'CACHED' | 'OFFLINE_FALLBACK';
+export type FirmwareOrigin = 'COMPILED' | 'CACHED' | 'WASM_LOCAL' | 'OFFLINE_FALLBACK';
 
 export type FirmwareBuildResult =
   | { ok: true; program: Uint16Array; origin: FirmwareOrigin; logs: FirmwareLog[] }
@@ -104,14 +104,26 @@ export async function buildFirmware(
 
   const program = hexToProgramWords(response.hex);
   const { flashBytes, flashMaxBytes, sramBytes, sramMaxBytes } = response.memoryUsage;
-  const origin: FirmwareOrigin = response.cached ? 'CACHED' : 'COMPILED';
+  const isLocalWasm = response.origin === 'WASM_LOCAL' || (response.offline && response.hex.length > 0);
+  const origin: FirmwareOrigin = response.cached
+    ? 'CACHED'
+    : isLocalWasm
+    ? 'WASM_LOCAL'
+    : 'COMPILED';
 
-  logs.push({
-    level: 'SYSTEM',
-    text: response.cached
-      ? '[COMPILADOR] Binário reaproveitado do cache SHA-256 (0 ms).'
-      : `[COMPILADOR] Compilação concluída em ${response.compilationTimeMs} ms.`
-  });
+  if (origin === 'WASM_LOCAL') {
+    logs.push({
+      level: 'SYSTEM',
+      text: '[COMPILADOR LOCAL] Sketch compilado com sucesso via WebAssembly local (100% offline).'
+    });
+  } else {
+    logs.push({
+      level: 'SYSTEM',
+      text: response.cached
+        ? '[COMPILADOR] Binário reaproveitado do cache SHA-256 (0 ms).'
+        : `[COMPILADOR] Compilação concluída em ${response.compilationTimeMs} ms.`
+    });
+  }
   logs.push({
     level: 'SYSTEM',
     text: `[COMPILADOR] Flash: ${flashBytes}/${flashMaxBytes} bytes (${percent(flashBytes, flashMaxBytes)}%) • SRAM: ${sramBytes}/${sramMaxBytes} bytes (${percent(sramBytes, sramMaxBytes)}%).`

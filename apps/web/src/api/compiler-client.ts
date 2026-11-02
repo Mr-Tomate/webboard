@@ -1,3 +1,5 @@
+import { LocalWasmCompiler } from '../compiler/local-wasm-compiler.ts';
+
 export interface CompileSuccessResponse {
   success: true;
   hex: string;
@@ -10,8 +12,10 @@ export interface CompileSuccessResponse {
     sramBytes: number;
     sramMaxBytes: number;
   };
-  /** Presente (true) somente quando o resultado veio da validação local por falta de rede. */
+  /** Presente (true) somente quando o resultado veio da validação/compilação local por falta de rede. */
   offline?: boolean;
+  /** Identifica compilação realizada no navegador via WebAssembly local (Tier 2). */
+  origin?: 'WASM_LOCAL';
 }
 
 export interface CompileErrorResponse {
@@ -26,6 +30,11 @@ export type CompileResponse = CompileSuccessResponse | CompileErrorResponse;
 export interface CompilerClientOptions {
   /** Tempo máximo de espera pela resposta do compiler-worker (ms). */
   timeoutMs?: number;
+  /**
+   * Habilita o compilador WebAssembly local como Tier 2 Fallback quando a nuvem falha.
+   * Padrão: true.
+   */
+  wasmFallback?: boolean;
 }
 
 /**
@@ -90,23 +99,26 @@ function isCompileResponse(data: unknown): data is CompileResponse {
 }
 
 /**
- * CompilerClient - Cliente HTTP de Conexão com o Microserviço de Compilação Fastify.
+ * CompilerClient - Cliente HTTP de Conexão com o Microserviço de Compilação Fastify (Tier 1)
+ * com Fallback Automático para o Compilador WebAssembly Local (Tier 2).
  *
  * Envia o código C++ do Monaco Editor para a rota POST /compile (porta 3002).
  * - 200 → CompileSuccessResponse (Intel HEX).
  * - 400/422 → CompileErrorResponse (violação RN-COD-01 ou stderr do arduino-cli).
- * - Rede indisponível / timeout → validação local RN-COD-01 com `offline: true` e `hex` vazio.
+ * - Rede indisponível / timeout → LocalWasmCompiler (Tier 2) com Intel HEX funcional e origin: 'WASM_LOCAL'.
  * - Resposta malformada (ex.: 500 HTML) → CompileErrorResponse explícito (nunca energiza às cegas).
  *
- * Conforme: docs/spec/07_linguagens_e_toolchains.md
+ * Conforme: docs/spec/07_linguagens_e_toolchains.md e docs/spec/13_fase2_protoboard_inspetor_compilacao_colaboracao.md
  */
 export class CompilerClient {
   private compilerUrl: string;
   private timeoutMs: number;
+  private wasmFallback: boolean;
 
   constructor(compilerUrl: string = 'http://localhost:3002', options: CompilerClientOptions = {}) {
     this.compilerUrl = compilerUrl.replace(/\/$/, '');
     this.timeoutMs = options.timeoutMs ?? 15000;
+    this.wasmFallback = options.wasmFallback ?? true;
   }
 
   public async compile(
@@ -128,6 +140,16 @@ export class CompilerClient {
       const reason = err?.name === 'AbortError'
         ? `tempo limite de ${this.timeoutMs}ms excedido`
         : (err?.message ?? 'Serviço offline');
+
+      // Tier 2: Compilador WebAssembly Local (100% offline)
+      if (this.wasmFallback) {
+        const localResult = await LocalWasmCompiler.compile(sourceCode, fqbn);
+        if (localResult.success) {
+          localResult.stdout = `[AVISO] Servidor de compilação offline (${reason}). Executando compilação no Tier 2 (WebAssembly local).\n${localResult.stdout}`;
+        }
+        return localResult;
+      }
+
       return this.localFallbackValidation(sourceCode, reason);
     } finally {
       clearTimeout(timer);
@@ -153,9 +175,8 @@ export class CompilerClient {
   }
 
   /**
-   * Validador local de fallback se o microserviço compiler-worker não estiver rodando no host.
-   * Aplica estritamente a validação RN-COD-01 para garantir integridade pedagógica.
-   * Em caso de sucesso, devolve `hex` vazio e `offline: true` — o chamador decide o firmware.
+   * Validador local superficial se o compilador Wasm estiver explicitamente desativado.
+   * Em caso de sucesso, devolve `hex` vazio e `offline: true`.
    */
   private localFallbackValidation(sourceCode: string, networkError: string): CompileResponse {
     const syntaxError = validateArduinoSketch(sourceCode);
