@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import Editor from '@monaco-editor/react';
 import {
   Code2,
@@ -7,9 +7,9 @@ import {
   Lock,
   CheckCircle2,
   Cpu,
-  Sparkles,
   Layers
 } from 'lucide-react';
+import './monaco-setup.js';
 
 export type SupportedLanguage = 'CPP' | 'PYTHON';
 
@@ -31,8 +31,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   onLanguageChange
 }) => {
   const monacoLanguage = language === 'CPP' ? 'cpp' : 'python';
-  const [editorEngine, setEditorEngine] = useState<'NATIVE' | 'MONACO'>('NATIVE');
-  const [monacoAvailable, setMonacoAvailable] = useState<boolean | null>(null);
+  const [editorEngine, setEditorEngine] = useState<'NATIVE' | 'MONACO'>('MONACO');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
@@ -139,19 +138,19 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </button>
         </div>
 
-        {/* Engine Switcher (Nativo 100% Offline vs Monaco CDN) */}
+        {/* Engine Switcher (Monaco Local Vite vs Nativo Ultra-leve) */}
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setEditorEngine(editorEngine === 'NATIVE' ? 'MONACO' : 'NATIVE')}
             title={
-              editorEngine === 'NATIVE'
-                ? 'Atualmente no Editor Nativo (Instantâneo e 100% Offline). Clique para alternar para Monaco Editor.'
-                : 'Atualmente no Monaco Editor. Clique para alternar para o Editor Nativo.'
+              editorEngine === 'MONACO'
+                ? 'Monaco Editor com bundling local no Vite. Clique para usar o Editor Nativo ultra-leve.'
+                : 'Editor Nativo ultra-leve. Clique para alternar para o Monaco Editor local.'
             }
             className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono bg-[#202024] hover:bg-[#27272a] text-zinc-300 border border-[#2e2e34] transition-colors cursor-pointer"
           >
             <Layers className="w-3 h-3 text-[#00e599]" />
-            <span>{editorEngine === 'NATIVE' ? 'Nativo (Offline)' : 'Monaco'}</span>
+            <span>{editorEngine === 'MONACO' ? 'Monaco (Local)' : 'Nativo (Leve)'}</span>
           </button>
         </div>
       </div>
@@ -214,7 +213,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             />
           </div>
         ) : (
-          /* Monaco Editor com Carregamento Gracioso e Fallback Seguro */
+          /* Monaco Editor com Carregamento Local no Vite (Zero Requisições CDN) */
           <div className="w-full h-full">
             <Editor
               height="100%"
@@ -266,7 +265,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-2 text-zinc-500">
-          <span>{editorEngine === 'NATIVE' ? 'Engine: Nativo 100% Offline' : 'Engine: Monaco'}</span>
+          <span>{editorEngine === 'MONACO' ? 'Engine: Monaco (Vite Local)' : 'Engine: Nativo (Offline)'}</span>
         </div>
       </div>
     </div>

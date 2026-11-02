@@ -17,6 +17,7 @@
     "avr8js": "^0.18.2",
     "konva": "^10.9.0",
     "lucide-react": "^1.63.0",
+    "monaco-editor": "^0.57.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-konva": "^19.3.2"
