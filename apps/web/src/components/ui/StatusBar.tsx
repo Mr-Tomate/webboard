@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layers, GitCommit, Info, Users } from 'lucide-react';
 import type { WorkbenchMode, WorkbenchFaultPayload } from '@webboard/contracts';
-import type { PresenceMember } from '../../types/telemetry.ts';
+import type { PresenceMember } from '../../types/telemetry.js';
 
 interface StatusBarProps {
   mode: WorkbenchMode;
@@ -9,6 +9,7 @@ interface StatusBarProps {
   componentCount: number;
   wireCount: number;
   presenceMembers?: PresenceMember[];
+  onOpenTeamModal?: () => void;
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
@@ -16,7 +17,8 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   fault,
   componentCount,
   wireCount,
-  presenceMembers
+  presenceMembers,
+  onOpenTeamModal,
 }) => {
   const isSimulating = mode === 'MODO_SIMULACAO';
 
@@ -34,19 +36,21 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           <span>Fios: <strong className="text-white">{wireCount}</strong></span>
         </div>
 
-        {/* Eixo D: Indicador de Membros da Equipe Conectados */}
+        {/* Eixo D: Indicador Interativo de Membros da Equipe Conectados */}
         {presenceMembers && presenceMembers.length > 0 && (
           <>
             <div className="h-3 w-px bg-[#2e2e34]" />
-            <div
-              className="flex items-center gap-1.5 text-sky-400 font-medium"
-              title={`Membros conectados no workspace: ${presenceMembers.map((m) => m.userName).join(', ')}`}
+            <button
+              type="button"
+              onClick={onOpenTeamModal}
+              className="flex items-center gap-1.5 text-sky-400 hover:text-white font-medium px-2 py-0.5 rounded bg-sky-950/50 hover:bg-sky-900/80 border border-sky-800/60 transition-all cursor-pointer group"
+              title="Clique para ver quem está na equipe, seus status e convidar colegas"
             >
-              <Users className="w-3.5 h-3.5" />
+              <Users className="w-3.5 h-3.5 text-sky-400 group-hover:scale-110 transition-transform" />
               <span>
-                Equipe: <strong className="text-sky-300">{presenceMembers.length} online</strong>
+                Equipe: <strong className="text-sky-300 underline underline-offset-2">{presenceMembers.length} online</strong>
               </span>
-            </div>
+            </button>
           </>
         )}
       </div>

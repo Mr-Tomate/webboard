@@ -9,11 +9,13 @@ import type {
 import { useViewport } from './hooks/useViewport.js';
 import { useWorkbench } from './hooks/useWorkbench.js';
 import { useTelemetrySocket } from './hooks/useTelemetrySocket.js';
+import { useAuth } from './hooks/useAuth.js';
 import { WorkbenchStage } from './components/canvas/WorkbenchStage.js';
 import { Toolbar, type ActiveAppView } from './components/ui/Toolbar.js';
 import { CatalogSidebar } from './components/ui/CatalogSidebar.js';
 import { InspectorDrawer } from './components/ui/InspectorDrawer.js';
 import { StatusBar } from './components/ui/StatusBar.js';
+import { TeamPresenceModal } from './components/ui/TeamPresenceModal.js';
 import { CodeWorkspacePanel } from './components/editor/CodeWorkspacePanel.js';
 import { PanopticDashboard } from './components/dashboard/PanopticDashboard.js';
 import { SubmissionResultModal } from './components/ui/SubmissionResultModal.js';
@@ -43,6 +45,9 @@ import { MessageSquare, X } from 'lucide-react';
 export function App() {
   const viewportHook = useViewport(1.0, { x: 50, y: 50 });
   const workbenchHook = useWorkbench();
+
+  // Contexto de Autenticação e Perfis Multi-Tenant (RBAC)
+  const { user, activeClassroom, token } = useAuth();
 
   const {
     mode,
@@ -96,9 +101,15 @@ export function App() {
   const [currentView, setCurrentView] = useState<ActiveAppView>('STUDENT_BENCH');
   const [isMirrorMode, setIsMirrorMode] = useState(false);
 
-  // Identidade do Estudante para Colaboração no Workspace
-  const [currentUserId] = useState(() => `user_${Math.random().toString(36).slice(2, 8)}`);
-  const [currentUserName] = useState('Você (Aluno)');
+  // Identidade do Estudante e do Workspace para Colaboração em Equipe
+  const guestUserId = useMemo(() => `user_${Math.random().toString(36).slice(2, 8)}`, []);
+  const currentUserId = user?.id || guestUserId;
+  const currentUserName = user?.name || (user?.email ? user.email.split('@')[0] : 'Você (Aluno)');
+  const currentClassroomId = activeClassroom?.id || 'turma_8b';
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState('ws_aluno_01');
+  const [currentWorkspaceName, setCurrentWorkspaceName] = useState('Bancada Principal');
+  const [currentWorkspaceType, setCurrentWorkspaceType] = useState<'SOLO' | 'GROUP'>('SOLO');
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
 
   // Instância do Emulador AVR8js
   const avrBoardRef = useRef<AVRBoard | null>(null);
@@ -110,6 +121,11 @@ export function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+
+  // Sincroniza token de autenticação no client da API
+  useEffect(() => {
+    apiClient.setToken(token);
+  }, [apiClient, token]);
 
   // Desafios e Kit Policy
   const [challenges, setChallenges] = useState<ChallengeListItem[]>([]);
@@ -158,8 +174,8 @@ export function App() {
   } = useTelemetrySocket(
     {
       role: socketRole,
-      classroomId: 'turma_8b',
-      workspaceId: 'ws_aluno_01',
+      classroomId: currentClassroomId,
+      workspaceId: currentWorkspaceId,
       userId: currentUserId,
       userName: currentUserName,
       onCircuitMutated: (mutation) => {
@@ -192,8 +208,10 @@ export function App() {
 
       // 2. Restaura Workspace do Aluno (Circuito e Código)
       try {
-        const ws = await apiClient.getWorkspace('ws_aluno_01');
+        const ws = await apiClient.getWorkspace(currentWorkspaceId);
         if (mounted && ws) {
+          if (ws.name) setCurrentWorkspaceName(ws.name);
+          if (ws.type) setCurrentWorkspaceType(ws.type);
           if (ws.circuit && ws.circuit.components && ws.circuit.components.length > 0) {
             loadFromCircuit(ws.circuit);
           }
@@ -223,7 +241,7 @@ export function App() {
     return () => {
       mounted = false;
     };
-  }, [apiClient, loadFromCircuit]);
+  }, [apiClient, loadFromCircuit, currentWorkspaceId]);
 
   // Troca de desafio ativo
   const handleSelectChallenge = useCallback(
@@ -262,10 +280,10 @@ export function App() {
     });
 
     const pulsePayload: StudentWorkspacePulse = {
-      workspaceId: 'ws_aluno_01',
-      classroomId: 'turma_8b',
-      teamName: 'Bancada 01 (Principal)',
-      students: ['Aluno Webboard'],
+      workspaceId: currentWorkspaceId,
+      classroomId: currentClassroomId,
+      teamName: currentWorkspaceName,
+      students: [currentUserName],
       status,
       lastActivitySecondsAgo: 0,
       currentChallengeTitle: activeChallenge?.title ?? 'Desafio 01: Circuito de Sinalização com LED',
@@ -296,7 +314,11 @@ export function App() {
     isMirrorMode,
     sendPulse,
     incomingNotes,
-    activeChallenge
+    activeChallenge,
+    currentWorkspaceId,
+    currentClassroomId,
+    currentWorkspaceName,
+    currentUserName
   ]);
 
   // Se a bancada entrar em ESTADO_FALHA_ENG, dispara alerta crítico para o professor via WebSocket
@@ -314,14 +336,14 @@ export function App() {
 
       // Emite alerta em tempo real para a sala de aula
       sendFaultAlert({
-        workspaceId: 'ws_aluno_01',
+        workspaceId: currentWorkspaceId,
         faultType: fault.type === 'SHORT_CIRCUIT' ? 'SHORT_CIRCUIT' : 'OVERCURRENT',
         message: fault.message,
         failedWireId: fault.failedWireId,
         failedComponentId: fault.failedComponentId
       });
     }
-  }, [mode, fault, sendFaultAlert]);
+  }, [mode, fault, sendFaultAlert, currentWorkspaceId]);
 
   // Teclas de atalho globais (Delete, Esc)
   useEffect(() => {
@@ -523,7 +545,7 @@ export function App() {
     };
 
     try {
-      await apiClient.saveWorkspace('ws_aluno_01', {
+      await apiClient.saveWorkspace(currentWorkspaceId, {
         circuit: circuitPayload,
         codeText: language === 'CPP' ? cppCode : pythonCode,
         language
@@ -582,9 +604,9 @@ export function App() {
     };
 
     try {
-      const response = await apiClient.submitChallenge('ws_aluno_01', {
+      const response = await apiClient.submitChallenge(currentWorkspaceId, {
         challengeId: activeChallengeId,
-        userId: 'usr_aluno_01',
+        userId: currentUserId,
         circuit: circuitPayload,
         codeText: language === 'CPP' ? cppCode : pythonCode,
         language
@@ -617,6 +639,18 @@ export function App() {
       setIsSubmitting(false);
     }
   };
+
+  // Adicionar Membro à Equipe da Bancada (RN-GRP-01)
+  const handleAddTeamMember = useCallback(async (newMemberUserId: string) => {
+    await apiClient.addWorkspaceMember(currentWorkspaceId, newMemberUserId);
+    setCurrentWorkspaceType('GROUP');
+    setSerialMessages((prev) =>
+      appendToSerialBuffer(
+        prev,
+        createSerialMessage(`[EQUIPE] Membro ${newMemberUserId} integrado à bancada em grupo.`, 'SYSTEM')
+      )
+    );
+  }, [apiClient, currentWorkspaceId]);
 
   // Funções do Docente (Visão Panóptica e Espelhamento)
   const handleMirrorWorkspace = (targetWorkspace: StudentWorkspacePulse) => {
@@ -799,13 +833,14 @@ export function App() {
             onClearSerial={() => setSerialMessages([])}
           />
 
-          {/* Barra de Status Inferior */}
+          {/* Barra de Status Inferior com Indicador Interativo da Equipe */}
           <StatusBar
             mode={mode}
             fault={fault}
             componentCount={components.length}
             wireCount={wires.length}
             presenceMembers={presenceMembers}
+            onOpenTeamModal={() => setIsTeamModalOpen(true)}
           />
 
           {/* Modal de Avaliação / Auto-Grading */}
@@ -813,6 +848,19 @@ export function App() {
             evaluation={evaluationResult}
             challengeTitle={activeChallenge?.title ?? "Desafio 01: Circuito de Sinalização com LED"}
             onClose={() => setEvaluationResult(null)}
+          />
+
+          {/* Modal Neobrutalista de Presença e Gestão de Equipe (Eixo D) */}
+          <TeamPresenceModal
+            isOpen={isTeamModalOpen}
+            onClose={() => setIsTeamModalOpen(false)}
+            presenceMembers={presenceMembers}
+            currentUserId={currentUserId}
+            workspaceId={currentWorkspaceId}
+            workspaceName={currentWorkspaceName}
+            workspaceType={currentWorkspaceType}
+            activeLocks={activeLocks}
+            onAddMember={handleAddTeamMember}
           />
         </>
       ) : (

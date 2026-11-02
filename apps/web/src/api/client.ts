@@ -236,6 +236,32 @@ export class WebboardApiClient {
     return res.json();
   }
 
+  public async addWorkspaceMember(
+    workspaceId: string,
+    userId: string
+  ): Promise<{ workspaceId: string; userId: string; name: string; isOwner: boolean }> {
+    const res = await fetch(`${this.baseUrl}/api/workspaces/${workspaceId}/members`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ userId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Erro ao adicionar membro: HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  public async removeWorkspaceMember(workspaceId: string, userId: string): Promise<void> {
+    const res = await fetch(`${this.baseUrl}/api/workspaces/${workspaceId}/members/${userId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(`Erro ao remover membro: HTTP ${res.status}`);
+    }
+  }
+
   public async submitChallenge(
     workspaceId: string,
     payload: {
