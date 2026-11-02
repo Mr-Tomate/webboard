@@ -5,3 +5,4 @@ export * from './component.js';
 export * from './workbench.js';
 export * from './challenge.js';
 export * from './submission.js';
+export * from './auth.js';
