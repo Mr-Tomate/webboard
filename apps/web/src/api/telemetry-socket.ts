@@ -33,7 +33,7 @@ export class TelemetryWebSocketClient {
   constructor(options: TelemetrySocketOptions) {
     const defaultUrl =
       typeof window !== 'undefined'
-        ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}:3333/ws/telemetry`
+        ? `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/telemetry`
         : 'ws://localhost:3333/ws/telemetry';
 
     this.options = {

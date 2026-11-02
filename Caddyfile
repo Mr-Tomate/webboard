@@ -1,0 +1,21 @@
+:8080 {
+	# 1. Telemetria e Colaboração Realtime (WebSockets)
+	handle /ws/* {
+		reverse_proxy localhost:3333
+	}
+
+	# 2. Endpoints da API REST Fastify
+	handle /api/* {
+		reverse_proxy localhost:3333
+	}
+
+	# 3. Frontend Vite SPA (Suporta HMR e Navegação)
+	handle {
+		reverse_proxy localhost:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

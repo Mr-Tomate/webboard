@@ -12,6 +12,10 @@
     "dev:web": "npm run dev -w @webboard/web",
     "dev:api": "npm run dev -w @webboard/api",
     "dev:compiler": "npm run start -w @webboard/compiler-worker",
+    "gateway": "caddy run --config Caddyfile",
+    "gateway:start": "caddy start --config Caddyfile",
+    "gateway:stop": "caddy stop",
+    "gateway:reload": "caddy reload --config Caddyfile",
     "build": "npm run --workspaces --if-present build",
     "test": "npm run --workspaces --if-present test"
   },

@@ -69,8 +69,14 @@ export class WebboardApiClient {
   private baseUrl: string;
   private token: string | null = null;
 
-  constructor(baseUrl: string = 'http://localhost:3333') {
-    this.baseUrl = baseUrl.replace(/\/$/, '');
+  constructor(baseUrl?: string) {
+    if (baseUrl) {
+      this.baseUrl = baseUrl.replace(/\/$/, '');
+    } else if (typeof window !== 'undefined') {
+      this.baseUrl = window.location.origin;
+    } else {
+      this.baseUrl = 'http://localhost:3333';
+    }
   }
 
   public setToken(token: string | null) {
