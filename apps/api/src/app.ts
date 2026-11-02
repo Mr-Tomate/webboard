@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import type { PrismaClient } from '@prisma/client';
 import { healthRoutes } from './routes/health.js';
+import { authRoutes } from './routes/auth.js';
 import { workspaceRoutes } from './routes/workspaces.js';
 import { telemetryRoutes } from './routes/telemetry.js';
 import { challengeRoutes } from './routes/challenges.js';
@@ -35,6 +36,7 @@ export async function buildApp(
   await app.register(websocket);
 
   await app.register(healthRoutes);
+  await app.register(authRoutes, { prisma });
   await app.register(workspaceRoutes, { prisma, roomManager });
   await app.register(challengeRoutes, { prisma });
   await app.register(telemetryRoutes, { roomManager });

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import test, { describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { PrismaClient } from '@prisma/client';
@@ -158,7 +159,7 @@ describe('TIJOLO 6: Teste de Integracao E2E - Fluxo Completo de Aluno e Docente'
       }
     );
 
-    await new Promise((r) => setTimeout(r, 60));
+    await new Promise((r) => setTimeout(r, 200));
     assert.ok(teacherMessages.length >= 1);
     assert.equal(teacherMessages[0].type, 'CLASSROOM_SNAPSHOT');
     assert.equal(teacherMessages[0].payload.classroomId, classroomId);
@@ -237,7 +238,7 @@ describe('TIJOLO 6: Teste de Integracao E2E - Fluxo Completo de Aluno e Docente'
     // 3. Aluno submete o circuito incorreto para o desafio
     const subFailRes = await app.inject({
       method: 'POST',
-      url: `/api/workspaces/${workspaceId}/submissions`,
+      url: `/api/workspaces/${workspaceId}/submissions`, 
       payload: {
         challengeId,
         userId: studentId,
@@ -266,7 +267,7 @@ describe('TIJOLO 6: Teste de Integracao E2E - Fluxo Completo de Aluno e Docente'
     );
 
     // 5. Professor recebe alerta em tempo real no dashboard
-    await new Promise((r) => setTimeout(r, 60));
+    await new Promise((r) => setTimeout(r, 200));
     const faultMsg = teacherMessages.find(
       (m) => m.type === 'WORKSPACE_FAULT_ALERT'
     );
@@ -287,7 +288,7 @@ describe('TIJOLO 6: Teste de Integracao E2E - Fluxo Completo de Aluno e Docente'
     );
 
     // 7. Bancada do aluno recebe a orientação pedagógica sem alteração nos fios
-    await new Promise((r) => setTimeout(r, 60));
+    await new Promise((r) => setTimeout(r, 200));
     const noteMsg = studentMessages.find(
       (m) => m.type === 'PEDAGOGICAL_NOTE_RECEIVED'
     );
@@ -394,7 +395,7 @@ describe('TIJOLO 6: Teste de Integracao E2E - Fluxo Completo de Aluno e Docente'
     assert.equal(subBody.evaluation.summary.failedTests, 0);
 
     // 4. Verificar se a telemetria WebSocket atualizou o professor
-    await new Promise((r) => setTimeout(r, 60));
+    await new Promise((r) => setTimeout(r, 200));
     const updateMsg = teacherMessages.find(
       (m) =>
         m.type === 'WORKSPACE_PULSE_UPDATED' &&

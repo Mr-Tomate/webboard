@@ -10,13 +10,14 @@
   "scripts": {
     "dev": "npm run dev -w @webboard/web",
     "dev:web": "npm run dev -w @webboard/web",
-    "dev:api": "npm run start -w @webboard/api",
+    "dev:api": "npm run dev -w @webboard/api",
     "dev:compiler": "npm run start -w @webboard/compiler-worker",
     "build": "npm run --workspaces --if-present build",
     "test": "npm run --workspaces --if-present test"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.3"
   },
   "dependencies": {
