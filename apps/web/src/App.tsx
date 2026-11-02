@@ -775,6 +775,7 @@ export function App() {
             language={language}
             code={language === 'CPP' ? cppCode : pythonCode}
             isReadOnly={mode === 'MODO_SIMULACAO' || isMirrorMode || isCompiling}
+            onStopSimulation={handleStopSimulation}
             onCodeChange={(val) => {
               if (isMirrorMode) return;
               if (language === 'CPP') setCppCode(val ?? '');

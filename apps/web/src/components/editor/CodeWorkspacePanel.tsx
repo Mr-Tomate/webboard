@@ -3,8 +3,7 @@ import {
   Code,
   Terminal,
   ChevronRight,
-  ChevronLeft,
-  SlidersHorizontal
+  ChevronLeft
 } from 'lucide-react';
 import { CodeEditor, type SupportedLanguage } from './CodeEditor.js';
 import { SerialConsole } from './SerialConsole.js';
@@ -16,6 +15,7 @@ interface CodeWorkspacePanelProps {
   language: SupportedLanguage;
   code: string;
   isReadOnly?: boolean;
+  onStopSimulation?: () => void;
   onCodeChange: (value: string | undefined) => void;
   onLanguageChange: (lang: SupportedLanguage) => void;
   serialMessages: SerialMessage[];
@@ -31,6 +31,7 @@ export const CodeWorkspacePanel: React.FC<CodeWorkspacePanelProps> = ({
   language,
   code,
   isReadOnly,
+  onStopSimulation,
   onCodeChange,
   onLanguageChange,
   serialMessages,
@@ -51,7 +52,7 @@ export const CodeWorkspacePanel: React.FC<CodeWorkspacePanelProps> = ({
       <div className="relative">
         <button
           onClick={onToggle}
-          title={isOpen ? 'Recolher Editor' : 'Abrir Editor de Código'}
+          title={isOpen ? 'Recolher Painel de Código' : 'Abrir Painel de Código e Terminal'}
           className="absolute top-20 -left-10 z-30 p-2 rounded-l-lg bg-[#1a1a1e] border-y border-l border-[#2e2e34] text-zinc-300 hover:text-[#00e599] transition-colors shadow-2xl cursor-pointer"
         >
           {isOpen ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -96,12 +97,13 @@ export const CodeWorkspacePanel: React.FC<CodeWorkspacePanelProps> = ({
           </div>
 
           {/* Área de Visualização Ativa */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 flex flex-col">
             {activeTab === 'CODE' ? (
               <CodeEditor
                 language={language}
                 code={code}
                 isReadOnly={isReadOnly}
+                onStopSimulation={onStopSimulation}
                 onChange={onCodeChange}
                 onLanguageChange={onLanguageChange}
               />
