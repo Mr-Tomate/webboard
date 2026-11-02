@@ -219,7 +219,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               height="100%"
               language={monacoLanguage}
               value={code}
-              theme="vs-dark"
+              theme="webboard-student-dark"
               loading={
                 <div className="flex flex-col items-center justify-center h-full text-zinc-500 font-mono text-xs gap-2">
                   <Cpu className="w-6 h-6 animate-pulse text-[#00e599]" />
@@ -234,16 +234,24 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               }
               options={{
                 readOnly: isReadOnly,
-                fontSize: 13,
+                fontSize: 13.5,
+                lineHeight: 22,
+                fontLigatures: true,
                 minimap: { enabled: false },
                 lineNumbers: 'on',
                 scrollBeyondLastLine: false,
                 automaticLayout: true,
                 tabSize: 2,
-                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+                fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
                 renderLineHighlight: 'all',
                 overviewRulerBorder: false,
-                folding: true
+                folding: true,
+                bracketPairColorization: { enabled: true },
+                guides: { bracketPairs: true, indentation: true },
+                smoothScrolling: true,
+                cursorBlinking: 'smooth',
+                cursorSmoothCaretAnimation: 'on',
+                padding: { top: 12, bottom: 12 }
               }}
               onChange={onChange}
             />
