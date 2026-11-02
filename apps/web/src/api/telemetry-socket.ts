@@ -26,6 +26,7 @@ export class TelemetryWebSocketClient {
   private messageHandlers: Set<TelemetryMessageHandler> = new Set();
   private statusHandlers: Set<TelemetryStatusHandler> = new Set();
   private reconnectTimer: any = null;
+  private reconnectAttempts = 0;
   private isExplicitlyClosed = false;
   private isConnecting = false;
 
@@ -85,6 +86,7 @@ export class TelemetryWebSocketClient {
 
       this.socket!.onopen = () => {
         this.isConnecting = false;
+        this.reconnectAttempts = 0;
         this.notifyStatus(true);
       };
 
@@ -122,6 +124,7 @@ export class TelemetryWebSocketClient {
 
   public disconnect(): void {
     this.isExplicitlyClosed = true;
+    this.reconnectAttempts = 0;
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -248,11 +251,16 @@ export class TelemetryWebSocketClient {
 
   private scheduleReconnect(): void {
     if (this.reconnectTimer) return;
+    const delay = Math.min(
+      this.options.reconnectIntervalMs * Math.pow(1.5, this.reconnectAttempts),
+      30000
+    );
+    this.reconnectAttempts++;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
       if (!this.isExplicitlyClosed) {
         this.connect();
       }
-    }, this.options.reconnectIntervalMs);
+    }, delay);
   }
 }
