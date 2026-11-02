@@ -48,6 +48,7 @@ export const CatalogSidebar: React.FC<CatalogSidebarProps> = ({
 
   return (
     <aside
+      id="tour-catalog"
       className={`absolute top-20 left-4 z-20 transition-all duration-300 ${
         isCollapsed ? 'w-12' : 'w-72'
       } bg-[#1a1a1e]/95 backdrop-blur border border-[#2e2e34] rounded-xl shadow-2xl flex flex-col max-h-[calc(100vh-140px)] overflow-hidden`}

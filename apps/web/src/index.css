@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "shepherd.js/dist/css/shepherd.css";
 
 :root {
   --bg-dark: #121214;
@@ -40,4 +41,84 @@ body, html, #root {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #52525b;
+}
+
+/* Tippy.js Webboard Dark Theme */
+.tippy-box[data-theme~='webboard'] {
+  background-color: #1c1c22;
+  color: #f4f4f5;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  padding: 3px 6px;
+}
+.tippy-box[data-theme~='webboard'] .tippy-arrow {
+  color: #1c1c22;
+}
+
+/* Shepherd.js Dark Theme Overrides */
+.shepherd-element {
+  background: #18181c !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.85) !important;
+  color: #f4f4f5 !important;
+  max-width: 380px !important;
+  z-index: 9999 !important;
+}
+.shepherd-header {
+  background: #202026 !important;
+  padding: 12px 16px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom: 1px solid #2e2e34 !important;
+}
+.shepherd-title {
+  color: #00e599 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.025em !important;
+}
+.shepherd-cancel-icon {
+  color: #a1a1aa !important;
+  font-size: 18px !important;
+}
+.shepherd-cancel-icon:hover {
+  color: #ffffff !important;
+}
+.shepherd-text {
+  padding: 16px !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  color: #d4d4d8 !important;
+}
+.shepherd-footer {
+  padding: 12px 16px !important;
+  border-top: 1px solid #2e2e34 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+.shepherd-button {
+  background: #27272a !important;
+  color: #f4f4f5 !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 6px !important;
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.shepherd-button:hover {
+  background: #3f3f46 !important;
+}
+.shepherd-button-primary {
+  background: #00e599 !important;
+  color: #09090b !important;
+  border: 1px solid #00e599 !important;
+  font-weight: 700 !important;
+}
+.shepherd-button-primary:hover {
+  background: #00c985 !important;
 }

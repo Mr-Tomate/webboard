@@ -37,6 +37,7 @@ import {
   determineWorkspaceStatus
 } from './utils/telemetry.js';
 import { AVRBoard } from './emulator/avr-board.js';
+import { startStudentTour } from './utils/tutorial.js';
 import { MessageSquare, X } from 'lucide-react';
 
 export function App() {
@@ -125,6 +126,14 @@ export function App() {
     createSerialMessage('Webboard Terminal Serial pronto. Conecte o código à bancada.', 'SYSTEM')
   ]);
   const [baudRate, setBaudRate] = useState<BaudRate>(9600);
+
+  // Inicia o Tour Interativo (Shepherd.js) para novos alunos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      startStudentTour(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Conexão WebSocket de Telemetria e Colaboração Concorrente (Eixo D)
   const socketRole = currentView === 'TEACHER_DASHBOARD' ? 'teacher' : 'student';
@@ -664,6 +673,7 @@ export function App() {
         onSelectChallenge={handleSelectChallenge}
         onSelectWireColor={handleSelectWireColor}
         onToggleCodePanel={() => setIsCodePanelOpen(!isCodePanelOpen)}
+        onStartTour={() => startStudentTour(true)}
         onToggleView={() =>
           setCurrentView(
             currentView === 'STUDENT_BENCH' ? 'TEACHER_DASHBOARD' : 'STUDENT_BENCH'
