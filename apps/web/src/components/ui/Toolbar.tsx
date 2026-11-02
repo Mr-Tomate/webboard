@@ -23,6 +23,7 @@ import type { WorkbenchMode, WorkbenchFaultPayload, WireColor } from '@webboard/
 import { WireColorPalette } from './WireColorPalette.js';
 import { Tooltip } from './Tooltip.js';
 import type { ChallengeListItem } from '../../api/client.js';
+import { UserProfileBadge } from '../auth/UserProfileBadge.js';
 
 export type ActiveAppView = 'STUDENT_BENCH' | 'TEACHER_DASHBOARD';
 
@@ -377,6 +378,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             </button>
           </Tooltip>
         )}
+
+        {/* Badge de Identidade do Usuário / Login / Turma */}
+        <UserProfileBadge />
       </div>
     </header>
   );
